@@ -12,7 +12,7 @@ import CryptoKit
 //import secp256k1Swift
 //typealias secp256k1Digest = secp256k1Swift.Digest
 #else
-import secp256k1
+import secp256k1Swift
 typealias secp256k1Digest = secp256k1_implementation.Digest
 #endif
 

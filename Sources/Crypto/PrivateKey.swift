@@ -12,7 +12,7 @@ import CryptoSwift
 // TODO: not completed
 //import secp256k1Swift
 #else
-import secp256k1
+import secp256k1Swift
 #endif
 
 public struct PrivateKey {
