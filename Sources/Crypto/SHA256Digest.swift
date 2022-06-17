@@ -7,16 +7,9 @@
 
 import Foundation
 import CryptoKit
-#if COCOAPODS
-// TODO: not completed
-//import secp256k1Swift
-//typealias secp256k1Digest = secp256k1Swift.Digest
-#else
 import secp256k1Swift
-typealias secp256k1Digest = secp256k1_implementation.Digest
-#endif
 
-public struct SHA256Digest: CryptoKit.Digest {
+public struct SHA256Digest: CryptoKit.Digest, secp256k1Swift.Digest {
 
     let bytes: (UInt64, UInt64, UInt64, UInt64)
 
@@ -96,11 +89,6 @@ public struct SHA256Digest: CryptoKit.Digest {
     }
 
 }
-
-#if !COCOAPODS
-extension SHA256Digest: secp256k1Digest {
-}
-#endif
 
 extension MutableDataProtocol {
 

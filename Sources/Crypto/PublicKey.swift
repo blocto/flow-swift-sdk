@@ -8,12 +8,7 @@
 import Foundation
 import CryptoKit
 import CryptoSwift
-#if COCOAPODS
-// TODO: not completed
-//import secp256k1Swift
-#else
 import secp256k1Swift
-#endif
 
 public struct PublicKey {
 
@@ -39,10 +34,6 @@ public struct PublicKey {
         case .ecdsaP256:
             self.implementation = .ecdsaP256(try P256.Signing.PublicKey(rawRepresentation: data))
         case .ecdsaSecp256k1:
-#if COCOAPODS
-            fatalError("not completed")
-            // TODO: not completed
-#else
             let rawData: Data
             switch data.count {
             case secp256k1.Format.compressed.length, secp256k1.Format.compressed.length - 1:
@@ -61,7 +52,6 @@ public struct PublicKey {
                 keyParity: 0,
                 format: .uncompressed)
             self.implementation = .ecdsaSecp256k1(key)
-#endif
         }
     }
 
@@ -71,14 +61,10 @@ public struct PublicKey {
             let digest = hashAlgorithm.getDigest(message: message)
             let ecdsaSignature = try P256.Signing.ECDSASignature(rawRepresentation: signature)
             return key.isValidSignature(ecdsaSignature, for: digest)
-#if COCOAPODS
-            // TODO: not completed
-#else
         case let .ecdsaSecp256k1(key):
             let digest = hashAlgorithm.getDigest(message: message)
             let ecdsaSignature = try secp256k1.Signing.ECDSASignature(rawRepresentation: signature)
             return key.ecdsa.isValidSignature(ecdsaSignature, for: digest)
-#endif
         }
     }
 
@@ -124,8 +110,6 @@ extension PublicKey {
 
     private enum Implementation {
         case ecdsaP256(P256.Signing.PublicKey)
-#if !COCOAPODS
         case ecdsaSecp256k1(secp256k1.Signing.PublicKey)
-#endif
     }
 }
