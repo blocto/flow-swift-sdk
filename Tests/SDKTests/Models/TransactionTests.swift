@@ -60,16 +60,26 @@ final class TransactionTests: XCTestCase {
         let signer = InMemorySigner(privateKey: privateKeyC, hashAlgorithm: .sha2_256)
 
         // User publick key
-//        let publicKey = try PublicKey(
-//            data: privateKeyA.publicKey.data,
-//            signatureAlgorithm: .ecdsaP256
-//        )
-        
-        guard let account = try client.getAccountAtLatestBlock(address: addressC).wait() else {
-            XCTFail()
+
+        guard let adminAccount = try client.getAccountAtLatestBlock(address: addressC).wait() else {
+            XCTFail("adminAccount not found.")
             return
         }
-        let accountKey = account.keys[0]
+
+        let selectedAccountKey = adminAccount.keys.first { $0.publicKey == privateKeyC.publicKey }
+        guard let adminAccountKey = selectedAccountKey else {
+            XCTFail("adminAccountKey not found.")
+            return
+        }
+
+        let userAccountKey = AccountKey(
+            index: -1,
+            publicKey: privateKeyA.publicKey,
+            signatureAlgorithm: .ecdsaP256,
+            hashAlgorithm: .sha2_256,
+            weight: 1000,
+            sequenceNumber: 0
+        )
 
         guard let referenceBlock = try client.getLatestBlock(isSealed: true).wait() else {
             XCTFail()
@@ -94,17 +104,17 @@ final class TransactionTests: XCTestCase {
             }
             """.utf8),
             arguments: [
-                .string(accountKey.publicKey.hexString),
-                .uint8(UInt8(accountKey.signatureAlgorithm.rawValue)),
-                .uint8(UInt8(accountKey.hashAlgorithm!.rawValue)),
-                .ufix64(1000),
+                .string(userAccountKey.publicKey.hexString),
+                .uint8(userAccountKey.signatureAlgorithm.cadenceValue),
+                .uint8(UInt8(userAccountKey.hashAlgorithm!.rawValue)),
+                .ufix64(Decimal(userAccountKey.weight)),
             ],
             referenceBlockId: referenceBlock.blockHeader.id,
             gasLimit: 1000,
             proposalKey: Transaction.ProposalKey(
                 address: addressC,
-                keyIndex: accountKey.index,
-                sequenceNumber: accountKey.sequenceNumber
+                keyIndex: adminAccountKey.index,
+                sequenceNumber: adminAccountKey.sequenceNumber
             ),
             payer: address,
             authorizers: [addressC]
@@ -114,6 +124,18 @@ final class TransactionTests: XCTestCase {
 
         let identifier = try client.sendTransaction(transaction: transaction).wait()
         print("txid --> \(identifier.hexString)")
+
+        var result: TransactionResult?
+        while result?.status != .sealed  {
+            result = try client.getTransactionResult(id: identifier).wait()
+            sleep(3)
+        }
+        guard let finalResult = result else {
+            XCTFail("result is nil")
+            return
+        }
+        print(result)
+        XCTAssertNil(finalResult.errorMessage)
     }
 
 }

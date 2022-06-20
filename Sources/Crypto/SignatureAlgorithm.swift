@@ -10,4 +10,13 @@ import Foundation
 public enum SignatureAlgorithm: UInt32, RawRepresentable {
     case ecdsaP256 = 2
     case ecdsaSecp256k1 = 3
+    
+    var cadenceValue: UInt8 {
+        switch self {
+        case .ecdsaP256:
+            return 1
+        case .ecdsaSecp256k1:
+            return 2
+        }
+    }
 }
