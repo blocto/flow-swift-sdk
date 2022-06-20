@@ -7,11 +7,6 @@
 
 @testable import SDK
 import Crypto
-#if !COCOAPODS
-    import Protobuf
-#endif
-import NIO
-import GRPC
 import Cadence
 import XCTest
 
@@ -19,18 +14,8 @@ final class TransactionTests: XCTestCase {
 
     let host = "access.devnet.nodes.onflow.org"
     let port = 9000
-    lazy var channel = ClientConnection(
-        configuration: .default(
-            target: .host(host, port: port),
-            eventLoopGroup: eventLoopGroup
-        ))
-    lazy var eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-    lazy var accessAPIClient = Flow_Access_AccessAPIClient(channel: channel)
 
-    lazy var client: Client = Client(
-        eventLoopGroup: eventLoopGroup,
-        accessAPIClient: accessAPIClient
-    )
+    lazy var client: Client = Client(host: host, port: port)
 
     lazy var addressA = Address(hexString: "0xc6de0d94160377cd")
     lazy var rawKeyA = Data(hex: "c9c0f04adddf7674d265c395de300a65a777d3ec412bba5bfdfd12cffbbb78d9")
@@ -50,22 +35,21 @@ final class TransactionTests: XCTestCase {
 
     func testFlowFee() throws {
         let result = try client.executeScriptAtLatestBlock(
-            script: .init(hex: """
+            script: Data("""
             import FlowFees from 0x912d5440f7e3769e
 
             pub fun main(): FlowFees.FeeParameters {
                 return FlowFees.getFeeParameters()
             }
-            """),
+            """.utf8),
             arguments: []
         ).wait()
         print(result)
     }
 
     func testNetworkParameters() throws {
-        let request = Flow_Access_GetNetworkParametersRequest()
-        let result = try accessAPIClient.getNetworkParameters(request).response.wait()
-        XCTAssertEqual(result.chainID, "flow-testnet")
+        let result = try client.getNetworkParameters().wait()
+        XCTAssertEqual(result, "flow-testnet")
     }
 
     func testCanCreateAccount() throws {
