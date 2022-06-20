@@ -331,6 +331,17 @@ final public class Client {
             .flatMapThrowing { try $0.results.map { try BlockEvents($0) } }
     }
 
+    /// Retrieves the Flow network details
+    public func getNetworkParameters(
+        options: CallOptions? = nil
+    ) -> EventLoopFuture<String> {
+        let request = Flow_Access_GetNetworkParametersRequest()
+
+        return accessAPIClient.getNetworkParameters(request, callOptions: options)
+            .response
+            .map { $0.chainID }
+    }
+
     /// Retrieves the latest snapshot of the protocol state in serialized form. This is used to generate a root snapshot file
     /// used by Flow nodes to bootstrap their local protocol state database.
     public func getLatestProtocolStateSnapshot(
