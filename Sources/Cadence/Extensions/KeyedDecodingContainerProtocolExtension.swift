@@ -49,3 +49,21 @@ extension KeyedDecodingContainerProtocol {
         return decimal
     }
 }
+
+// MARK: - String Integer
+extension KeyedDecodingContainerProtocol {
+
+    func decodeStringInteger<IntegerType: FixedWidthInteger>(
+        _ type: IntegerType.Type,
+        forKey key: Self.Key
+    ) throws -> IntegerType {
+        let text = try decode(String.self, forKey: key)
+        guard let value = IntegerType(text) else {
+            throw DecodingError.dataCorruptedError(
+                forKey: key,
+                in: self,
+                debugDescription: "Expected \(IntegerType.self) string")
+        }
+        return value
+    }
+}

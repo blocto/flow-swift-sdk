@@ -190,21 +190,21 @@ extension Value: Codable {
         case .uint:
             self = .uint(try container.decodeBigUIntFromString(forKey: .value))
         case .int8:
-            self = .int8(try container.decode(Int8.self, forKey: .value))
+            self = .int8(try container.decodeStringInteger(Int8.self, forKey: .value))
         case .uint8:
-            self = .uint8(try container.decode(UInt8.self, forKey: .value))
+            self = .uint8(try container.decodeStringInteger(UInt8.self, forKey: .value))
         case .int16:
-            self = .int16(try container.decode(Int16.self, forKey: .value))
+            self = .int16(try container.decodeStringInteger(Int16.self, forKey: .value))
         case .uint16:
-            self = .uint16(try container.decode(UInt16.self, forKey: .value))
+            self = .uint16(try container.decodeStringInteger(UInt16.self, forKey: .value))
         case .int32:
-            self = .int32(try container.decode(Int32.self, forKey: .value))
+            self = .int32(try container.decodeStringInteger(Int32.self, forKey: .value))
         case .uint32:
-            self = .uint32(try container.decode(UInt32.self, forKey: .value))
+            self = .uint32(try container.decodeStringInteger(UInt32.self, forKey: .value))
         case .int64:
-            self = .int64(try container.decode(Int64.self, forKey: .value))
+            self = .int64(try container.decodeStringInteger(Int64.self, forKey: .value))
         case .uint64:
-            self = .uint64(try container.decode(UInt64.self, forKey: .value))
+            self = .uint64(try container.decodeStringInteger(UInt64.self, forKey: .value))
         case .int128:
             self = .int128(try container.decodeBigIntFromString(forKey: .value))
         case .uint128:
@@ -214,13 +214,13 @@ extension Value: Codable {
         case .uint256:
             self = .uint256(try container.decodeBigUIntFromString(forKey: .value))
         case .word8:
-            self = .word8(try container.decode(UInt8.self, forKey: .value))
+            self = .word8(try container.decodeStringInteger(UInt8.self, forKey: .value))
         case .word16:
-            self = .word16(try container.decode(UInt16.self, forKey: .value))
+            self = .word16(try container.decodeStringInteger(UInt16.self, forKey: .value))
         case .word32:
-            self = .word32(try container.decode(UInt32.self, forKey: .value))
+            self = .word32(try container.decodeStringInteger(UInt32.self, forKey: .value))
         case .word64:
-            self = .word64(try container.decode(UInt64.self, forKey: .value))
+            self = .word64(try container.decodeStringInteger(UInt64.self, forKey: .value))
         case .fix64:
             self = .fix64(try container.decodeDecimalFromString(forKey: .value))
         case .ufix64:
