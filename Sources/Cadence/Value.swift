@@ -145,9 +145,9 @@ extension Value: Codable {
         case let .word64(word64):
             try container.encode(String(word64), forKey: .value)
         case let .fix64(fix64):
-            try container.encode(fix64.description, forKey: .value)
+            try container.encode(fix64.description.addingZeroDecimalIfNeeded, forKey: .value)
         case let .ufix64(ufix64):
-            try container.encode(ufix64.description, forKey: .value)
+            try container.encode(ufix64.description.addingZeroDecimalIfNeeded, forKey: .value)
         case let .array(array):
             try container.encode(array, forKey: .value)
         case let .dictionary(dictionary):
@@ -256,5 +256,18 @@ extension Value {
     public static func decode(data: Data) throws -> Value {
         let decoder = JSONDecoder()
         return try decoder.decode(Value.self, from: data)
+    }
+}
+
+// MARK: - String
+
+extension String {
+
+    var addingZeroDecimalIfNeeded: String {
+        var result = description
+        if result.contains(".") == false {
+            result += ".0"
+        }
+        return result
     }
 }
