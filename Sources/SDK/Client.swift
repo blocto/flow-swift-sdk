@@ -30,6 +30,11 @@ final public class Client {
             accessAPIClient: Flow_Access_AccessAPIClient(channel: channel))
     }
 
+    public convenience init(network: Network) {
+        let endpoint = network.endpoint
+        self.init(host: endpoint.host, port: endpoint.port)
+    }
+
     init(eventLoopGroup: EventLoopGroup,
          accessAPIClient: Flow_Access_AccessAPIClientProtocol) {
         self.eventLoopGroup = eventLoopGroup

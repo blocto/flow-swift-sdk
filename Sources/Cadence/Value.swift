@@ -261,7 +261,7 @@ extension Value {
 
 // MARK: - String
 
-extension String {
+private extension String {
 
     var addingZeroDecimalIfNeeded: String {
         var result = description
