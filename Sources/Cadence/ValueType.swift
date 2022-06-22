@@ -1,5 +1,5 @@
 //
-//  CadenceType.swift
+//  ValueType.swift
 // 
 //  Created by Scott on 2022/5/18.
 //  Copyright © 2022 portto. All rights reserved.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum `Type`: String, Equatable, Codable {
+public enum ValueType: String, Equatable, Codable {
     case void = "Void"
     case optional = "Optional"
     case bool = "Bool"

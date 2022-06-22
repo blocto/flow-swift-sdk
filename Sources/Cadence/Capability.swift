@@ -1,5 +1,5 @@
 //
-//  CadenceCapability.swift
+//  Capability.swift
 // 
 //  Created by Scott on 2022/5/20.
 //  Copyright © 2022 portto. All rights reserved.
@@ -11,6 +11,16 @@ import Foundation
 public struct Capability: Codable, Equatable {
 
     public let path: String
-    public let address: String
-    public let borrowType: String
+    public let address: Address
+    public let borrowType: StaticType
+
+    public init(
+        path: String,
+        address: Address,
+        borrowType: StaticType
+    ) {
+        self.path = path
+        self.address = address
+        self.borrowType = borrowType
+    }
 }

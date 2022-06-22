@@ -42,10 +42,10 @@ public enum Value: Equatable {
     indirect case contract(CompositeContract)
     indirect case `enum`(CompositeEnum)
     case path(Path)
-    case type(StaticType)
+    case type(StaticTypeValue)
     case capability(Capability)
 
-    public var type: `Type` {
+    public var type: ValueType {
         switch self {
         case .void: return .void
         case .optional: return .optional
@@ -173,7 +173,7 @@ extension Value: Codable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        let type = try container.decode(`Type`.self, forKey: .type)
+        let type = try container.decode(ValueType.self, forKey: .type)
         switch type {
         case .void:
             self = .void
@@ -242,7 +242,7 @@ extension Value: Codable {
         case .path:
             self = .path(try container.decode(Path.self, forKey: .value))
         case .type:
-            self = .type(try container.decode(StaticType.self, forKey: .value))
+            self = .type(try container.decode(StaticTypeValue.self, forKey: .value))
         case .capability:
             self = .capability(try container.decode(Capability.self, forKey: .value))
         }
@@ -253,9 +253,11 @@ extension Value: Codable {
 
 extension Value {
 
-    public static func decode(data: Data) throws -> Value {
+    public static func decode(data: Data) throws -> Self {
+        // TODO: debug
+        debugPrint(String(data: data, encoding: .utf8)!)
         let decoder = JSONDecoder()
-        return try decoder.decode(Value.self, from: data)
+        return try decoder.decode(Self.self, from: data)
     }
 }
 
