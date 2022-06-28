@@ -1131,16 +1131,4 @@ final class ClientTests: XCTestCase {
         XCTAssertEqual(result, expected)
     }
 
-    public func testXD() throws {
-        let client = Client(network: .testnet)
-        let result = try client.executeScriptAtLatestBlock(script: """
-        import FlowToken from 0x7e60df042a9c0868
-
-        pub fun main(): Type {
-            return Type<FlowToken.TokensWithdrawn>()
-        }
-        """.data(using: .utf8)!, arguments: []).wait()
-        debugPrint(result)
-    }
-
 }

@@ -7,10 +7,10 @@
 
 import Foundation
 
-public struct RestrictionType: Equatable {
+public class RestrictionType: Codable {
     public let typeId: String
-    public let type: StaticType
-    public let restrictions: [StaticType]
+    public var type: StaticType
+    public var restrictions: [StaticType]
 
     public init(
         typeId: String,
@@ -21,15 +21,35 @@ public struct RestrictionType: Equatable {
         self.type = type
         self.restrictions = restrictions
     }
-}
 
-// MARK: - Codable
-
-extension RestrictionType: Codable {
+    // MARK: Codable
 
     enum CodingKeys: String, CodingKey {
         case typeId = "typeID"
         case type
         case restrictions
+    }
+
+    required public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.typeId = try container.decode(String.self, forKey: .typeId)
+        self.type = .bool // must call decodePossibleRepeatedProperties later
+        self.restrictions = [] // must call decodePossibleRepeatedProperties later
+    }
+
+    public func decodePossibleRepeatedProperties(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        type = try container.decodeStaticType(userInfo: decoder.userInfo, forKey: .type)
+        restrictions = try container.decode([StaticType].self, forKey: .restrictions)
+    }
+}
+
+// MARK: - Equatable
+
+extension RestrictionType: Equatable {
+
+    public static func == (lhs: RestrictionType, rhs: RestrictionType) -> Bool {
+        lhs.typeId == rhs.typeId &&
+        lhs.type == rhs.type
     }
 }

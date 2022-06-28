@@ -7,11 +7,11 @@
 
 import Foundation
 
-public struct CompositeType: Equatable {
+public class CompositeType: Codable {
     public let type: String
     public let typeId: String
-    public let initializers: [InitializerType]
-    public let fields: [FieldType]
+    public var initializers: [InitializerType]
+    public var fields: [FieldType]
 
     public init(
         type: String,
@@ -25,10 +25,7 @@ public struct CompositeType: Equatable {
         self.fields = fields
     }
 
-}
-
-// MARK: - Codable
-extension CompositeType: Codable {
+    // MARK: Codable
 
     enum CodingKeys: String, CodingKey {
         case type
@@ -37,12 +34,27 @@ extension CompositeType: Codable {
         case fields
     }
 
-    public init(from decoder: Decoder) throws {
+    required public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.type = try container.decode(String.self, forKey: .type)
         self.typeId = try container.decode(String.self, forKey: .typeId)
-        self.initializers = try container.decode([InitializerType].self, forKey: .initializers)
-        self.fields = try container.decode([FieldType].self, forKey: .fields)
+        self.initializers = [] // must call decodePossibleRepeatedProperties later
+        self.fields = [] // must call decodePossibleRepeatedProperties later
     }
 
+    public func decodeFieldTypes(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        initializers = try container.decode([InitializerType].self, forKey: .initializers)
+        fields = try container.decode([FieldType].self, forKey: .fields)
+    }
+}
+
+// MARK: - Equatable
+
+extension CompositeType: Equatable {
+
+    public static func == (lhs: CompositeType, rhs: CompositeType) -> Bool {
+        lhs.type == rhs.type &&
+        lhs.typeId == rhs.typeId
+    }
 }

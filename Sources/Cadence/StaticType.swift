@@ -60,9 +60,9 @@ public enum StaticType: Equatable {
     case accountKey
     case block
     indirect case optional(StaticType)
-    indirect case variableSizedArray(StaticType)
-    indirect case constantSizedArray(StaticType, Int)
-    indirect case dictionary(key: StaticType, value: StaticType)
+    indirect case variableSizedArray(elementType: StaticType)
+    indirect case constantSizedArray(elementType: StaticType, size: Int)
+    indirect case dictionary(keyType: StaticType, elementType: StaticType)
     indirect case `struct`(CompositeType)
     indirect case resource(CompositeType)
     indirect case event(CompositeType)
@@ -73,7 +73,7 @@ public enum StaticType: Equatable {
     indirect case function(FunctionType)
     indirect case reference(ReferenceType)
     indirect case restriction(RestrictionType)
-    indirect case capability(StaticType)
+    indirect case capability(borrowType: StaticType)
     indirect case `enum`(EnumType)
 
     public var kind: StaticTypeKind {
@@ -217,6 +217,7 @@ public enum StaticType: Equatable {
 }
 
 // MARK: - Codable
+
 extension StaticType: Codable {
 
     enum CodingKeys: CodingKey {
@@ -346,46 +347,88 @@ extension StaticType: Codable {
         case .block:
             self = .block
         case .optional:
-            let type = try container.decode(StaticType.self, forKey: .type)
+            let type = try container.decodeStaticType(userInfo: decoder.userInfo, forKey: .type)
             self = .optional(type)
         case .variableSizedArray:
-            let type = try container.decode(StaticType.self, forKey: .type)
-            self = .variableSizedArray(type)
+            let element = try container.decodeStaticType(userInfo: decoder.userInfo, forKey: .type)
+            self = .variableSizedArray(elementType: element)
         case .constantSizedArray:
             let container = try decoder.container(keyedBy: ConstantSizedArrayCodingKeys.self)
-            let type = try container.decode(StaticType.self, forKey: .type)
+            let element = try container.decodeStaticType(userInfo: decoder.userInfo, forKey: .type)
             let size = try container.decode(Int.self, forKey: .size)
-            self = .constantSizedArray(type, size)
+            self = .constantSizedArray(elementType: element, size: size)
         case .dictionary:
             let container = try decoder.container(keyedBy: DictionaryCodingKeys.self)
-            let key = try container.decode(StaticType.self, forKey: .key)
-            let value = try container.decode(StaticType.self, forKey: .value)
-            self = .dictionary(key: key, value: value)
+            let key = try container.decodeStaticType(userInfo: decoder.userInfo, forKey: .key)
+            let element = try container.decodeStaticType(userInfo: decoder.userInfo, forKey: .value)
+            self = .dictionary(keyType: key, elementType: element)
         case .struct:
-            self = .struct(try CompositeType(from: decoder))
+            let compositeType = try CompositeType(from: decoder)
+            self = .struct(compositeType)
+            decoder.addTypeToDecodingResultsIfPossible(type: self, typeId: compositeType.typeId)
+            try compositeType.decodeFieldTypes(from: decoder)
         case .resource:
-            self = .resource(try CompositeType(from: decoder))
+            let compositeType = try CompositeType(from: decoder)
+            self = .resource(compositeType)
+            decoder.addTypeToDecodingResultsIfPossible(type: self, typeId: compositeType.typeId)
+            try compositeType.decodeFieldTypes(from: decoder)
         case .event:
-            self = .event(try CompositeType(from: decoder))
+            let compositeType = try CompositeType(from: decoder)
+            self = .event(compositeType)
+            decoder.addTypeToDecodingResultsIfPossible(type: self, typeId: compositeType.typeId)
+            try compositeType.decodeFieldTypes(from: decoder)
         case .contract:
-            self = .contract(try CompositeType(from: decoder))
+            let compositeType = try CompositeType(from: decoder)
+            self = .contract(compositeType)
+            decoder.addTypeToDecodingResultsIfPossible(type: self, typeId: compositeType.typeId)
+            try compositeType.decodeFieldTypes(from: decoder)
         case .structInterface:
-            self = .structInterface(try CompositeType(from: decoder))
+            let compositeType = try CompositeType(from: decoder)
+            self = .structInterface(compositeType)
+            decoder.addTypeToDecodingResultsIfPossible(type: self, typeId: compositeType.typeId)
+            try compositeType.decodeFieldTypes(from: decoder)
         case .resourceInterface:
-            self = .resourceInterface(try CompositeType(from: decoder))
+            let compositeType = try CompositeType(from: decoder)
+            self = .resourceInterface(compositeType)
+            decoder.addTypeToDecodingResultsIfPossible(type: self, typeId: compositeType.typeId)
+            try compositeType.decodeFieldTypes(from: decoder)
         case .contractInterface:
-            self = .contractInterface(try CompositeType(from: decoder))
+            let compositeType = try CompositeType(from: decoder)
+            self = .contractInterface(compositeType)
+            decoder.addTypeToDecodingResultsIfPossible(type: self, typeId: compositeType.typeId)
+            try compositeType.decodeFieldTypes(from: decoder)
         case .function:
-            self = .function(try FunctionType(from: decoder))
+            let functionType = try FunctionType(from: decoder)
+            self = .function(functionType)
+            decoder.addTypeToDecodingResultsIfPossible(type: self, typeId: functionType.typeId)
+            try functionType.decodePossibleRepeatedProperties(from: decoder)
         case .reference:
             self = .reference(try ReferenceType(from: decoder))
         case .restriction:
-            self = .restriction(try RestrictionType(from: decoder))
+            let restrictionType = try RestrictionType(from: decoder)
+            self = .restriction(restrictionType)
+            decoder.addTypeToDecodingResultsIfPossible(type: self, typeId: restrictionType.typeId)
+            try restrictionType.decodePossibleRepeatedProperties(from: decoder)
         case .capability:
-            let type = try container.decode(StaticType.self, forKey: .type)
-            self = .capability(type)
+            let type = try container.decodeStaticType(userInfo: decoder.userInfo, forKey: .type)
+            self = .capability(borrowType: type)
         case .enum:
-            self = .enum(try EnumType(from: decoder))
+            let enumType = try EnumType(from: decoder)
+            self = .enum(enumType)
+            decoder.addTypeToDecodingResultsIfPossible(type: self, typeId: enumType.typeId)
+            try enumType.decodePossibleRepeatedProperties(from: decoder)
+        }
+    }
+
+}
+
+// MARK: - Decoder
+
+private extension Decoder {
+
+    func addTypeToDecodingResultsIfPossible(type: StaticType, typeId: String) {
+        if let results = userInfo[.decodingResults] as? StaticTypeDecodingResults {
+            results.value = [typeId: type]
         }
     }
 }

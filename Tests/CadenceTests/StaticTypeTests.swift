@@ -870,7 +870,7 @@ final class StaticTypeTests: XCTestCase {
         let value = try decoder.decode(StaticType.self, from: jsonData)
 
         // Then
-        XCTAssertEqual(value, .variableSizedArray(.string))
+        XCTAssertEqual(value, .variableSizedArray(elementType: .string))
         XCTAssertEqual(value.kind, .variableSizedArray)
     }
 
@@ -890,7 +890,7 @@ final class StaticTypeTests: XCTestCase {
         let value = try decoder.decode(StaticType.self, from: jsonData)
 
         // Then
-        XCTAssertEqual(value, .constantSizedArray(.string, 3))
+        XCTAssertEqual(value, .constantSizedArray(elementType: .string, size: 3))
         XCTAssertEqual(value.kind, .constantSizedArray)
     }
 
@@ -912,7 +912,7 @@ final class StaticTypeTests: XCTestCase {
         let value = try decoder.decode(StaticType.self, from: jsonData)
 
         // Then
-        XCTAssertEqual(value, .dictionary(key: .string, value: .uint16))
+        XCTAssertEqual(value, .dictionary(keyType: .string, elementType: .uint16))
         XCTAssertEqual(value.kind, .dictionary)
     }
 
@@ -1399,7 +1399,7 @@ final class StaticTypeTests: XCTestCase {
 
         // Then
         XCTAssertEqual(value, .capability(
-            .reference(.init(authorized: true, type: .string))
+            borrowType: .reference(.init(authorized: true, type: .string))
         ))
         XCTAssertEqual(value.kind, .capability)
     }

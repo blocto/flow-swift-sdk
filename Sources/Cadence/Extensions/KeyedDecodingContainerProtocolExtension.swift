@@ -51,6 +51,7 @@ extension KeyedDecodingContainerProtocol {
 }
 
 // MARK: - String Integer
+
 extension KeyedDecodingContainerProtocol {
 
     func decodeStringInteger<IntegerType: FixedWidthInteger>(
@@ -67,3 +68,30 @@ extension KeyedDecodingContainerProtocol {
         return value
     }
 }
+
+// MARK: StaticType
+
+extension KeyedDecodingContainerProtocol {
+
+    func decodeStaticType(
+        userInfo: [CodingUserInfoKey: Any],
+        forKey key: Self.Key
+    ) throws -> StaticType {
+        if let typeId = try? decode(String.self, forKey: key) {
+            if let results = userInfo[.decodingResults] as? StaticTypeDecodingResults,
+               let type = results.value[typeId] {
+                return type
+            } else {
+                throw DecodingError.dataCorruptedError(
+                    forKey: key,
+                    in: self,
+                    debugDescription: "TypeID(\(typeId)) Not found")
+            }
+        } else {
+            let type = try decode(StaticType.self, forKey: key)
+            return type
+        }
+    }
+
+}
+

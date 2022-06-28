@@ -254,9 +254,8 @@ extension Value: Codable {
 extension Value {
 
     public static func decode(data: Data) throws -> Self {
-        // TODO: debug
-        debugPrint(String(data: data, encoding: .utf8)!)
         let decoder = JSONDecoder()
+        decoder.userInfo[.decodingResults] = StaticTypeDecodingResults()
         return try decoder.decode(Self.self, from: data)
     }
 }

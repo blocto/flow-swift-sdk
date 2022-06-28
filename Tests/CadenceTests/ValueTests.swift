@@ -762,4 +762,61 @@ final class ValueTests: XCTestCase {
         XCTAssertEqual(value.type, .capability)
     }
 
+    func testDecodeRepeatedType() throws {
+        // Given:
+        let jsonData = """
+        {
+          "type": "Type",
+          "value": {
+            "staticType": {
+              "kind": "Resource",
+              "typeID": "0x3.GreatContract.NFT",
+              "fields": [
+                {
+                  "id": "foo",
+                  "type": {
+                    "kind": "Optional",
+                    "type": "0x3.GreatContract.NFT"
+                  }
+                }
+              ],
+              "initializers": [],
+              "type": ""
+            }
+          }
+        }
+        """.data(using: .utf8)!
+
+        // When:
+        let value = try Value.decode(data: jsonData)
+
+        // Then
+        let resource = CompositeType(
+            type: "",
+            typeId: "0x3.GreatContract.NFT",
+            initializers: [],
+            fields: [])
+        let type = StaticType.resource(resource)
+        resource.fields = [
+            .init(id: "foo", type: .optional(type))
+        ]
+        XCTAssertEqual(value, .type(
+            .init(
+                staticType: .resource(
+                    .init(
+                        type: "",
+                        typeId: "0x3.GreatContract.NFT",
+                        initializers: [],
+                        fields: [
+                            .init(
+                                id: "foo",
+                                type: .optional(type))
+                        ]
+                    )
+                )
+            )
+        ))
+        XCTAssertEqual(value.type, .type)
+    }
+
 }
