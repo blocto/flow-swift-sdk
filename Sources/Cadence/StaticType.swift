@@ -214,6 +214,61 @@ public enum StaticType: Equatable {
             return .enum
         }
     }
+
+    public var id: String {
+        switch self {
+        case .any, .anyStruct, .anyResource,
+             .type, .void, .never,
+             .bool, .string, .character, .bytes, .address,
+             .number, .signedNumber, .integer, .signedInteger,
+             .fixedPoint, .signedFixedPoint,
+             .int, .int8, .int16, .int32, .int64, .int128, .int256,
+             .uint, .uint8, .uint16, .uint32, .uint64, .uint128, .uint256,
+             .word8, .word16, .word32, .word64,
+             .fix64, .ufix64,
+             .path, .capabilityPath, .storagePath, .publicPath, .privatePath,
+             .authAccount, .publicAccount, .authAccountKeys, .publicAccountKeys,
+             .authAccountContracts, .publicAccountContracts, .deployedContract,
+             .accountKey, .block:
+            return kind.rawValue
+        case let .optional(type):
+            return "\(type.kind.rawValue)?"
+        case let .variableSizedArray(elementType):
+            return "[\(elementType.kind.rawValue)]"
+        case let .constantSizedArray(elementType, size):
+            return "[\(elementType.kind.rawValue);\(size)]"
+        case let .dictionary(keyType, elementType):
+            return "{\(keyType.kind.rawValue):\(elementType.kind.rawValue)}"
+        case let .struct(compositeType):
+            return compositeType.typeId
+        case let .resource(compositeType):
+            return compositeType.typeId
+        case let .event(compositeType):
+            return compositeType.typeId
+        case let .contract(compositeType):
+            return compositeType.typeId
+        case let .structInterface(compositeType):
+            return compositeType.typeId
+        case let .resourceInterface(compositeType):
+            return compositeType.typeId
+        case let .contractInterface(compositeType):
+            return compositeType.typeId
+        case let .function(functionType):
+            return functionType.typeId
+        case let .reference(referenceType):
+            var id = "&\(referenceType.type.id)"
+            if referenceType.authorized {
+                id = "auth" + id
+            }
+            return id
+        case let .restriction(restrictionType):
+            return restrictionType.typeId
+        case let .capability(borrowType):
+            return "\(kind.rawValue)<\(borrowType.id)>"
+        case let .enum(enumType):
+            return enumType.typeId
+        }
+    }
 }
 
 // MARK: - Codable

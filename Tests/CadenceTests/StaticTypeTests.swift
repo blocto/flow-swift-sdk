@@ -20,6 +20,70 @@ final class StaticTypeTests: XCTestCase {
         decoder = nil
     }
 
+    func testId() throws {
+        XCTAssertEqual(StaticType.any.id, "Any")
+        XCTAssertEqual(StaticType.anyStruct.id, "AnyStruct")
+        XCTAssertEqual(StaticType.anyResource.id, "AnyResource")
+        XCTAssertEqual(StaticType.number.id, "Number")
+        XCTAssertEqual(StaticType.signedNumber.id, "SignedNumber")
+        XCTAssertEqual(StaticType.integer.id, "Integer")
+        XCTAssertEqual(StaticType.signedInteger.id, "SignedInteger")
+        XCTAssertEqual(StaticType.fixedPoint.id, "FixedPoint")
+        XCTAssertEqual(StaticType.signedFixedPoint.id, "SignedFixedPoint")
+        XCTAssertEqual(StaticType.uint.id, "UInt")
+        XCTAssertEqual(StaticType.uint8.id, "UInt8")
+        XCTAssertEqual(StaticType.uint16.id, "UInt16")
+        XCTAssertEqual(StaticType.uint32.id, "UInt32")
+        XCTAssertEqual(StaticType.uint64.id, "UInt64")
+        XCTAssertEqual(StaticType.uint128.id, "UInt128")
+        XCTAssertEqual(StaticType.uint256.id, "UInt256")
+        XCTAssertEqual(StaticType.int.id, "Int")
+        XCTAssertEqual(StaticType.int8.id, "Int8")
+        XCTAssertEqual(StaticType.int16.id, "Int16")
+        XCTAssertEqual(StaticType.int32.id, "Int32")
+        XCTAssertEqual(StaticType.int64.id, "Int64")
+        XCTAssertEqual(StaticType.int128.id, "Int128")
+        XCTAssertEqual(StaticType.int256.id, "Int256")
+        XCTAssertEqual(StaticType.word8.id, "Word8")
+        XCTAssertEqual(StaticType.word16.id, "Word16")
+        XCTAssertEqual(StaticType.word32.id, "Word32")
+        XCTAssertEqual(StaticType.word64.id, "Word64")
+        XCTAssertEqual(StaticType.ufix64.id, "UFix64")
+        XCTAssertEqual(StaticType.fix64.id, "Fix64")
+        XCTAssertEqual(StaticType.void.id, "Void")
+        XCTAssertEqual(StaticType.bool.id, "Bool")
+        XCTAssertEqual(StaticType.character.id, "Character")
+        XCTAssertEqual(StaticType.never.id, "Never")
+        XCTAssertEqual(StaticType.string.id, "String")
+        XCTAssertEqual(StaticType.bytes.id, "Bytes")
+        XCTAssertEqual(StaticType.address.id, "Address")
+        XCTAssertEqual(StaticType.path.id, "Path")
+        XCTAssertEqual(StaticType.storagePath.id, "StoragePath")
+        XCTAssertEqual(StaticType.capabilityPath.id, "CapabilityPath")
+        XCTAssertEqual(StaticType.publicPath.id, "PublicPath")
+        XCTAssertEqual(StaticType.privatePath.id, "PrivatePath")
+        XCTAssertEqual(StaticType.block.id, "Block")
+        XCTAssertEqual(StaticType.type.id, "Type")
+        XCTAssertEqual(
+            StaticType.capability(borrowType: .int).id,
+            "Capability<Int>")
+        XCTAssertEqual(
+            StaticType.optional(.string).id,
+            "String?")
+        XCTAssertEqual(
+            StaticType.variableSizedArray(elementType: .string).id,
+            "[String]")
+        XCTAssertEqual(
+            StaticType.constantSizedArray(elementType: .string, size: 2).id,
+            "[String;2]")
+        XCTAssertEqual(
+            StaticType.dictionary(keyType: .string, elementType: .int).id,
+            "{String:Int}")
+        XCTAssertEqual(
+            StaticType.function(.init(typeId: "S.test.Foo{S.test.FooI}")).id,
+            "S.test.Foo{S.test.FooI}")
+    }
+
     func testDecodeSimpleTypeAny() throws {
         // Given:
         let jsonData = """
