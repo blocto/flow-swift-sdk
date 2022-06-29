@@ -87,6 +87,7 @@ public enum Value: Equatable {
 }
 
 // MARK: - Codable
+
 extension Value: Codable {
 
     enum CodingKeys: CodingKey {
@@ -257,6 +258,118 @@ extension Value {
         let decoder = JSONDecoder()
         decoder.userInfo[.decodingResults] = CTypeDecodingResults()
         return try decoder.decode(Self.self, from: data)
+    }
+}
+
+// MARK: - CustomStringConvertible
+
+extension Value: CustomStringConvertible {
+
+    public var description: String {
+        switch self {
+        case .void:
+            return Format.void.description
+        case let .optional(value):
+            if let value = value {
+                return value.description
+            } else {
+                return Format.nil.description
+            }
+        case let .bool(bool):
+            return Format.bool(bool).description
+        case let .string(string):
+            return Format.string(string).description
+        case let .address(address):
+            return Format.address(address).description
+        case let .int(bigInt):
+            return Format.bigInt(bigInt).description
+        case let .uint(bigUInt):
+            return Format.bigUInt(bigUInt).description
+        case let .int8(int8):
+            return Format.int8(int8).description
+        case let .uint8(uint8):
+            return Format.uint8(uint8).description
+        case let .int16(int16):
+            return Format.int16(int16).description
+        case let .uint16(uint16):
+            return Format.uint16(uint16).description
+        case let .int32(int32):
+            return Format.int32(int32).description
+        case let .uint32(uint32):
+            return Format.uint32(uint32).description
+        case let .int64(int64):
+            return Format.int64(int64).description
+        case let .uint64(uint64):
+            return Format.uint64(uint64).description
+        case let .int128(bigInt):
+            return Format.bigInt(bigInt).description
+        case let .uint128(bigUInt):
+            return Format.bigUInt(bigUInt).description
+        case let .int256(bigInt):
+            return Format.bigInt(bigInt).description
+        case let .uint256(bigUInt):
+            return Format.bigUInt(bigUInt).description
+        case let .word8(uint8):
+            return Format.uint8(uint8).description
+        case let .word16(uint16):
+            return Format.uint16(uint16).description
+        case let .word32(uint32):
+            return Format.uint32(uint32).description
+        case let .word64(uint64):
+            return Format.uint64(uint64).description
+        case let .fix64(decimal):
+            return Format.decimal(decimal).description
+        case let .ufix64(decimal):
+            return Format.decimal(decimal).description
+        case let .array(array):
+            return Format.array(array.map { $0.description }).description
+        case let .dictionary(array):
+            let pairs = array.map { (key: $0.key.description, value: $0.value.description) }
+            return Format.dictionary(pairs).description
+        case let .struct(compositeStruct):
+            let pairs = compositeStruct.fields.map { (name: $0.name, value: $0.value.description) }
+            return Format.composite(
+                typeId: compositeStruct.id,
+                fields: pairs
+            ).description
+        case let .resource(compositeResource):
+            let pairs = compositeResource.fields.map { (name: $0.name, value: $0.value.description) }
+            return Format.composite(
+                typeId: compositeResource.id,
+                fields: pairs
+            ).description
+        case let .event(compositeEvent):
+            let pairs = compositeEvent.fields.map { (name: $0.name, value: $0.value.description) }
+            return Format.composite(
+                typeId: compositeEvent.id,
+                fields: pairs
+            ).description
+        case let .contract(compositeContract):
+            let pairs = compositeContract.fields.map { (name: $0.name, value: $0.value.description) }
+            return Format.composite(
+                typeId: compositeContract.id,
+                fields: pairs
+            ).description
+        case let .enum(compositeEnum):
+            let pairs = compositeEnum.fields.map { (name: $0.name, value: $0.value.description) }
+            return Format.composite(
+                typeId: compositeEnum.id,
+                fields: pairs
+            ).description
+        case let .path(path):
+            return Format.path(
+                domain: path.domain.rawValue,
+                identifier: path.identifier
+            ).description
+        case let .type(staticTypeValue):
+            return Format.type(staticTypeValue.staticType).description
+        case let .capability(capability):
+            return Format.capability(
+                borrowType: capability.borrowType,
+                address: capability.address,
+                path: capability.path
+            ).description
+        }
     }
 }
 

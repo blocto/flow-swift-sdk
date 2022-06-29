@@ -32,6 +32,16 @@ public struct Address: Equatable, Hashable {
         data.toHexString()
     }
 
+    public var hexStringWithPrefix: String {
+        var result = "0x"
+        if data.count < Self.length {
+            let zeroPadding = Data(repeating: 0, count: Self.length - data.count)
+            result += zeroPadding.toHexString()
+        }
+        result += data.toHexString()
+        return result
+    }
+
     public init(data: Data) {
         self.data = data
     }

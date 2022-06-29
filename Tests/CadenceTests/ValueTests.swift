@@ -819,4 +819,85 @@ final class ValueTests: XCTestCase {
         XCTAssertEqual(value.type, .type)
     }
 
+    func testCustomStringConvertible() throws {
+        // Given:
+        let ufix64 = Decimal(string: "64.01")!
+        let fix64 = Decimal(string: "-32.11")!
+
+        // When & Then:
+        XCTAssertEqual(Value.uint(10).description, "10")
+        XCTAssertEqual(Value.uint8(8).description, "8")
+        XCTAssertEqual(Value.uint16(16).description, "16")
+        XCTAssertEqual(Value.uint32(32).description, "32")
+        XCTAssertEqual(Value.uint64(64).description, "64")
+        XCTAssertEqual(Value.uint128(128).description, "128")
+        XCTAssertEqual(Value.uint256(256).description, "256")
+        XCTAssertEqual(Value.int(1000000).description, "1000000")
+        XCTAssertEqual(Value.int8(-8).description, "-8")
+        XCTAssertEqual(Value.int16(-16).description, "-16")
+        XCTAssertEqual(Value.int32(-32).description, "-32")
+        XCTAssertEqual(Value.int64(-64).description, "-64")
+        XCTAssertEqual(Value.int128(-128).description, "-128")
+        XCTAssertEqual(Value.int256(-256).description, "-256")
+        XCTAssertEqual(Value.word8(8).description, "8")
+        XCTAssertEqual(Value.word16(16).description, "16")
+        XCTAssertEqual(Value.word32(32).description, "32")
+        XCTAssertEqual(Value.word64(64).description, "64")
+        XCTAssertEqual(Value.ufix64(ufix64).description, "64.01000000")
+        XCTAssertEqual(Value.fix64(fix64).description, "-32.11000000")
+        XCTAssertEqual(Value.void.description, "()")
+        XCTAssertEqual(Value.bool(true).description, "true")
+        XCTAssertEqual(Value.bool(false).description, "false")
+        XCTAssertEqual(Value.optional(.ufix64(ufix64)).description, "64.01000000")
+        XCTAssertEqual(Value.optional(nil).description, "nil")
+        XCTAssertEqual(Value.string("Flow ridah!").description, "\"Flow ridah!\"")
+        XCTAssertEqual(Value.array([
+            .int(10),
+            .string("TEST")]
+        ).description, "[10, \"TEST\"]")
+        XCTAssertEqual(Value.dictionary([
+            .init(key: .string("key"), value: .string("value"))
+        ]).description, "{\"key\": \"value\"}")
+        XCTAssertEqual(Value.address(
+            Address(data: Data([0, 0, 0, 0, 0, 0, 0, 1]))
+        ).description, "0x0000000000000001")
+        XCTAssertEqual(Value.struct(.init(
+            id: "S.test.FooStruct",
+            fields: [
+                .init(name: "y", value: .string("bar"))
+            ])
+        ).description, "S.test.FooStruct(y: \"bar\")")
+        XCTAssertEqual(Value.resource(.init(
+            id: "S.test.FooResource",
+            fields: [
+                .init(name: "bar", value: .int(1))
+            ])
+        ).description, "S.test.FooResource(bar: 1)")
+        XCTAssertEqual(Value.event(.init(
+            id: "S.test.FooEvent",
+            fields: [
+                .init(name: "a", value: .int(1)),
+                .init(name: "b", value: .string("foo"))
+            ])
+        ).description, "S.test.FooEvent(a: 1, b: \"foo\")")
+        XCTAssertEqual(Value.contract(.init(
+            id: "S.test.FooContract",
+            fields: [
+                .init(name: "y", value: .string("bar"))
+            ])
+        ).description, "S.test.FooContract(y: \"bar\")")
+        XCTAssertEqual(Value.path(
+            .init(domain: .storage, identifier: "foo")
+        ).description, "/storage/foo")
+        XCTAssertEqual(Value.type(
+            .init(staticType: .int)
+        ).description, "Type<Int>()")
+        XCTAssertEqual(Value.capability(
+            .init(
+                path: "/storage/foo",
+                address: Address(data: Data([1, 2, 3, 4, 5])),
+                borrowType: .int)
+        ).description, "Capability<Int>(address: 0x0000000102030405, path: /storage/foo)")
+    }
+
 }
