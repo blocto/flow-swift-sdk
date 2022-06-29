@@ -12,12 +12,12 @@ public struct Capability: Codable, Equatable {
 
     public let path: String
     public let address: Address
-    public let borrowType: StaticType
+    public let borrowType: CType
 
     public init(
         path: String,
         address: Address,
-        borrowType: StaticType
+        borrowType: CType
     ) {
         self.path = path
         self.address = address

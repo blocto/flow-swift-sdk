@@ -1,5 +1,5 @@
 //
-//  StaticType.swift
+//  CType.swift
 // 
 //  Created by Scott on 2022/6/21.
 //  Copyright © 2022 portto. All rights reserved.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum StaticType: Equatable {
+public enum CType: Equatable {
     case `any`
     case anyStruct
     case anyResource
@@ -59,10 +59,10 @@ public enum StaticType: Equatable {
     case deployedContract
     case accountKey
     case block
-    indirect case optional(StaticType)
-    indirect case variableSizedArray(elementType: StaticType)
-    indirect case constantSizedArray(elementType: StaticType, size: Int)
-    indirect case dictionary(keyType: StaticType, elementType: StaticType)
+    indirect case optional(CType)
+    indirect case variableSizedArray(elementType: CType)
+    indirect case constantSizedArray(elementType: CType, size: Int)
+    indirect case dictionary(keyType: CType, elementType: CType)
     indirect case `struct`(CompositeType)
     indirect case resource(CompositeType)
     indirect case event(CompositeType)
@@ -73,10 +73,10 @@ public enum StaticType: Equatable {
     indirect case function(FunctionType)
     indirect case reference(ReferenceType)
     indirect case restriction(RestrictionType)
-    indirect case capability(borrowType: StaticType)
+    indirect case capability(borrowType: CType)
     indirect case `enum`(EnumType)
 
-    public var kind: StaticTypeKind {
+    public var kind: CTypeKind {
         switch self {
         case .any:
             return .any
@@ -273,7 +273,7 @@ public enum StaticType: Equatable {
 
 // MARK: - Codable
 
-extension StaticType: Codable {
+extension CType: Codable {
 
     enum CodingKeys: CodingKey {
         case kind
@@ -297,7 +297,7 @@ extension StaticType: Codable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        let kind = try container.decode(StaticTypeKind.self, forKey: .kind)
+        let kind = try container.decode(CTypeKind.self, forKey: .kind)
         switch kind {
         case .any:
             self = .any
@@ -402,20 +402,20 @@ extension StaticType: Codable {
         case .block:
             self = .block
         case .optional:
-            let type = try container.decodeStaticType(userInfo: decoder.userInfo, forKey: .type)
+            let type = try container.decodeCType(userInfo: decoder.userInfo, forKey: .type)
             self = .optional(type)
         case .variableSizedArray:
-            let element = try container.decodeStaticType(userInfo: decoder.userInfo, forKey: .type)
+            let element = try container.decodeCType(userInfo: decoder.userInfo, forKey: .type)
             self = .variableSizedArray(elementType: element)
         case .constantSizedArray:
             let container = try decoder.container(keyedBy: ConstantSizedArrayCodingKeys.self)
-            let element = try container.decodeStaticType(userInfo: decoder.userInfo, forKey: .type)
+            let element = try container.decodeCType(userInfo: decoder.userInfo, forKey: .type)
             let size = try container.decode(Int.self, forKey: .size)
             self = .constantSizedArray(elementType: element, size: size)
         case .dictionary:
             let container = try decoder.container(keyedBy: DictionaryCodingKeys.self)
-            let key = try container.decodeStaticType(userInfo: decoder.userInfo, forKey: .key)
-            let element = try container.decodeStaticType(userInfo: decoder.userInfo, forKey: .value)
+            let key = try container.decodeCType(userInfo: decoder.userInfo, forKey: .key)
+            let element = try container.decodeCType(userInfo: decoder.userInfo, forKey: .value)
             self = .dictionary(keyType: key, elementType: element)
         case .struct:
             let compositeType = try CompositeType(from: decoder)
@@ -465,7 +465,7 @@ extension StaticType: Codable {
             decoder.addTypeToDecodingResultsIfPossible(type: self, typeId: restrictionType.typeId)
             try restrictionType.decodePossibleRepeatedProperties(from: decoder)
         case .capability:
-            let type = try container.decodeStaticType(userInfo: decoder.userInfo, forKey: .type)
+            let type = try container.decodeCType(userInfo: decoder.userInfo, forKey: .type)
             self = .capability(borrowType: type)
         case .enum:
             let enumType = try EnumType(from: decoder)
@@ -481,8 +481,8 @@ extension StaticType: Codable {
 
 private extension Decoder {
 
-    func addTypeToDecodingResultsIfPossible(type: StaticType, typeId: String) {
-        if let results = userInfo[.decodingResults] as? StaticTypeDecodingResults {
+    func addTypeToDecodingResultsIfPossible(type: CType, typeId: String) {
+        if let results = userInfo[.decodingResults] as? CTypeDecodingResults {
             results.value = [typeId: type]
         }
     }

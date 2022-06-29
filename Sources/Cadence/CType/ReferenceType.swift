@@ -9,9 +9,9 @@ import Foundation
 
 public struct ReferenceType: Equatable, Codable {
     public let authorized: Bool
-    public let type: StaticType
+    public let type: CType
 
-    public init(authorized: Bool, type: StaticType) {
+    public init(authorized: Bool, type: CType) {
         self.authorized = authorized
         self.type = type
     }

@@ -69,16 +69,16 @@ extension KeyedDecodingContainerProtocol {
     }
 }
 
-// MARK: StaticType
+// MARK: CType
 
 extension KeyedDecodingContainerProtocol {
 
-    func decodeStaticType(
+    func decodeCType(
         userInfo: [CodingUserInfoKey: Any],
         forKey key: Self.Key
-    ) throws -> StaticType {
+    ) throws -> CType {
         if let typeId = try? decode(String.self, forKey: key) {
-            if let results = userInfo[.decodingResults] as? StaticTypeDecodingResults,
+            if let results = userInfo[.decodingResults] as? CTypeDecodingResults,
                let type = results.value[typeId] {
                 return type
             } else {
@@ -88,7 +88,7 @@ extension KeyedDecodingContainerProtocol {
                     debugDescription: "TypeID(\(typeId)) Not found")
             }
         } else {
-            let type = try decode(StaticType.self, forKey: key)
+            let type = try decode(CType.self, forKey: key)
             return type
         }
     }

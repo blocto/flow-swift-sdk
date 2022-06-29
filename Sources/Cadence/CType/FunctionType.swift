@@ -10,12 +10,12 @@ import Foundation
 public class FunctionType: Codable {
     public let typeId: String
     public var parameters: [ParameterType]
-    public var `return`: StaticType
+    public var `return`: CType
 
     public init(
         typeId: String,
         parameters: [ParameterType] = [],
-        return: StaticType = .void
+        return: CType = .void
     ) {
         self.typeId = typeId
         self.parameters = parameters
@@ -40,7 +40,7 @@ public class FunctionType: Codable {
     public func decodePossibleRepeatedProperties(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         parameters = try container.decode([ParameterType].self, forKey: .parameters)
-        `return` = try container.decodeStaticType(userInfo: decoder.userInfo, forKey: .return)
+        `return` = try container.decodeCType(userInfo: decoder.userInfo, forKey: .return)
     }
 }
 

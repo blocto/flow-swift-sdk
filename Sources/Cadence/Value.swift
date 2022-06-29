@@ -255,7 +255,7 @@ extension Value {
 
     public static func decode(data: Data) throws -> Self {
         let decoder = JSONDecoder()
-        decoder.userInfo[.decodingResults] = StaticTypeDecodingResults()
+        decoder.userInfo[.decodingResults] = CTypeDecodingResults()
         return try decoder.decode(Self.self, from: data)
     }
 }

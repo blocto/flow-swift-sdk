@@ -9,9 +9,9 @@ import Foundation
 
 /// https://docs.onflow.org/cadence/json-cadence-spec/#type-value
 public struct StaticTypeValue: Codable, Equatable {
-    public let staticType: StaticType
+    public let staticType: CType
 
-    public init(staticType: StaticType) {
+    public init(staticType: CType) {
         self.staticType = staticType
     }
 }

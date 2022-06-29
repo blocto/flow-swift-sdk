@@ -21,66 +21,66 @@ final class StaticTypeTests: XCTestCase {
     }
 
     func testId() throws {
-        XCTAssertEqual(StaticType.any.id, "Any")
-        XCTAssertEqual(StaticType.anyStruct.id, "AnyStruct")
-        XCTAssertEqual(StaticType.anyResource.id, "AnyResource")
-        XCTAssertEqual(StaticType.number.id, "Number")
-        XCTAssertEqual(StaticType.signedNumber.id, "SignedNumber")
-        XCTAssertEqual(StaticType.integer.id, "Integer")
-        XCTAssertEqual(StaticType.signedInteger.id, "SignedInteger")
-        XCTAssertEqual(StaticType.fixedPoint.id, "FixedPoint")
-        XCTAssertEqual(StaticType.signedFixedPoint.id, "SignedFixedPoint")
-        XCTAssertEqual(StaticType.uint.id, "UInt")
-        XCTAssertEqual(StaticType.uint8.id, "UInt8")
-        XCTAssertEqual(StaticType.uint16.id, "UInt16")
-        XCTAssertEqual(StaticType.uint32.id, "UInt32")
-        XCTAssertEqual(StaticType.uint64.id, "UInt64")
-        XCTAssertEqual(StaticType.uint128.id, "UInt128")
-        XCTAssertEqual(StaticType.uint256.id, "UInt256")
-        XCTAssertEqual(StaticType.int.id, "Int")
-        XCTAssertEqual(StaticType.int8.id, "Int8")
-        XCTAssertEqual(StaticType.int16.id, "Int16")
-        XCTAssertEqual(StaticType.int32.id, "Int32")
-        XCTAssertEqual(StaticType.int64.id, "Int64")
-        XCTAssertEqual(StaticType.int128.id, "Int128")
-        XCTAssertEqual(StaticType.int256.id, "Int256")
-        XCTAssertEqual(StaticType.word8.id, "Word8")
-        XCTAssertEqual(StaticType.word16.id, "Word16")
-        XCTAssertEqual(StaticType.word32.id, "Word32")
-        XCTAssertEqual(StaticType.word64.id, "Word64")
-        XCTAssertEqual(StaticType.ufix64.id, "UFix64")
-        XCTAssertEqual(StaticType.fix64.id, "Fix64")
-        XCTAssertEqual(StaticType.void.id, "Void")
-        XCTAssertEqual(StaticType.bool.id, "Bool")
-        XCTAssertEqual(StaticType.character.id, "Character")
-        XCTAssertEqual(StaticType.never.id, "Never")
-        XCTAssertEqual(StaticType.string.id, "String")
-        XCTAssertEqual(StaticType.bytes.id, "Bytes")
-        XCTAssertEqual(StaticType.address.id, "Address")
-        XCTAssertEqual(StaticType.path.id, "Path")
-        XCTAssertEqual(StaticType.storagePath.id, "StoragePath")
-        XCTAssertEqual(StaticType.capabilityPath.id, "CapabilityPath")
-        XCTAssertEqual(StaticType.publicPath.id, "PublicPath")
-        XCTAssertEqual(StaticType.privatePath.id, "PrivatePath")
-        XCTAssertEqual(StaticType.block.id, "Block")
-        XCTAssertEqual(StaticType.type.id, "Type")
+        XCTAssertEqual(CType.any.id, "Any")
+        XCTAssertEqual(CType.anyStruct.id, "AnyStruct")
+        XCTAssertEqual(CType.anyResource.id, "AnyResource")
+        XCTAssertEqual(CType.number.id, "Number")
+        XCTAssertEqual(CType.signedNumber.id, "SignedNumber")
+        XCTAssertEqual(CType.integer.id, "Integer")
+        XCTAssertEqual(CType.signedInteger.id, "SignedInteger")
+        XCTAssertEqual(CType.fixedPoint.id, "FixedPoint")
+        XCTAssertEqual(CType.signedFixedPoint.id, "SignedFixedPoint")
+        XCTAssertEqual(CType.uint.id, "UInt")
+        XCTAssertEqual(CType.uint8.id, "UInt8")
+        XCTAssertEqual(CType.uint16.id, "UInt16")
+        XCTAssertEqual(CType.uint32.id, "UInt32")
+        XCTAssertEqual(CType.uint64.id, "UInt64")
+        XCTAssertEqual(CType.uint128.id, "UInt128")
+        XCTAssertEqual(CType.uint256.id, "UInt256")
+        XCTAssertEqual(CType.int.id, "Int")
+        XCTAssertEqual(CType.int8.id, "Int8")
+        XCTAssertEqual(CType.int16.id, "Int16")
+        XCTAssertEqual(CType.int32.id, "Int32")
+        XCTAssertEqual(CType.int64.id, "Int64")
+        XCTAssertEqual(CType.int128.id, "Int128")
+        XCTAssertEqual(CType.int256.id, "Int256")
+        XCTAssertEqual(CType.word8.id, "Word8")
+        XCTAssertEqual(CType.word16.id, "Word16")
+        XCTAssertEqual(CType.word32.id, "Word32")
+        XCTAssertEqual(CType.word64.id, "Word64")
+        XCTAssertEqual(CType.ufix64.id, "UFix64")
+        XCTAssertEqual(CType.fix64.id, "Fix64")
+        XCTAssertEqual(CType.void.id, "Void")
+        XCTAssertEqual(CType.bool.id, "Bool")
+        XCTAssertEqual(CType.character.id, "Character")
+        XCTAssertEqual(CType.never.id, "Never")
+        XCTAssertEqual(CType.string.id, "String")
+        XCTAssertEqual(CType.bytes.id, "Bytes")
+        XCTAssertEqual(CType.address.id, "Address")
+        XCTAssertEqual(CType.path.id, "Path")
+        XCTAssertEqual(CType.storagePath.id, "StoragePath")
+        XCTAssertEqual(CType.capabilityPath.id, "CapabilityPath")
+        XCTAssertEqual(CType.publicPath.id, "PublicPath")
+        XCTAssertEqual(CType.privatePath.id, "PrivatePath")
+        XCTAssertEqual(CType.block.id, "Block")
+        XCTAssertEqual(CType.type.id, "Type")
         XCTAssertEqual(
-            StaticType.capability(borrowType: .int).id,
+            CType.capability(borrowType: .int).id,
             "Capability<Int>")
         XCTAssertEqual(
-            StaticType.optional(.string).id,
+            CType.optional(.string).id,
             "String?")
         XCTAssertEqual(
-            StaticType.variableSizedArray(elementType: .string).id,
+            CType.variableSizedArray(elementType: .string).id,
             "[String]")
         XCTAssertEqual(
-            StaticType.constantSizedArray(elementType: .string, size: 2).id,
+            CType.constantSizedArray(elementType: .string, size: 2).id,
             "[String;2]")
         XCTAssertEqual(
-            StaticType.dictionary(keyType: .string, elementType: .int).id,
+            CType.dictionary(keyType: .string, elementType: .int).id,
             "{String:Int}")
         XCTAssertEqual(
-            StaticType.function(.init(typeId: "S.test.Foo{S.test.FooI}")).id,
+            CType.function(.init(typeId: "S.test.Foo{S.test.FooI}")).id,
             "S.test.Foo{S.test.FooI}")
     }
 
@@ -93,7 +93,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .any)
@@ -109,7 +109,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .anyStruct)
@@ -125,7 +125,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .anyResource)
@@ -141,7 +141,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .type)
@@ -157,7 +157,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .void)
@@ -173,7 +173,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .never)
@@ -189,7 +189,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .bool)
@@ -205,7 +205,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .string)
@@ -221,7 +221,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .character)
@@ -237,7 +237,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .bytes)
@@ -253,7 +253,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .address)
@@ -269,7 +269,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .number)
@@ -285,7 +285,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .signedNumber)
@@ -301,7 +301,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .integer)
@@ -317,7 +317,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .signedInteger)
@@ -333,7 +333,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .fixedPoint)
@@ -349,7 +349,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .signedFixedPoint)
@@ -365,7 +365,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .int)
@@ -381,7 +381,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .int8)
@@ -397,7 +397,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .int16)
@@ -413,7 +413,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .int32)
@@ -429,7 +429,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .int64)
@@ -445,7 +445,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .int128)
@@ -461,7 +461,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .int256)
@@ -477,7 +477,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .uint)
@@ -493,7 +493,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .uint8)
@@ -509,7 +509,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .uint16)
@@ -525,7 +525,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .uint32)
@@ -541,7 +541,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .uint64)
@@ -557,7 +557,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .uint128)
@@ -573,7 +573,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .uint256)
@@ -589,7 +589,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .word8)
@@ -605,7 +605,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .word16)
@@ -621,7 +621,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .word32)
@@ -637,7 +637,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .word64)
@@ -653,7 +653,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .fix64)
@@ -669,7 +669,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .ufix64)
@@ -685,7 +685,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .path)
@@ -701,7 +701,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .capabilityPath)
@@ -717,7 +717,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .storagePath)
@@ -733,7 +733,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .publicPath)
@@ -749,7 +749,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .privatePath)
@@ -765,7 +765,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .authAccount)
@@ -781,7 +781,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .publicAccount)
@@ -797,7 +797,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .authAccountKeys)
@@ -813,7 +813,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .publicAccountKeys)
@@ -829,7 +829,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .authAccountContracts)
@@ -845,7 +845,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .publicAccountContracts)
@@ -861,7 +861,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .deployedContract)
@@ -877,7 +877,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .accountKey)
@@ -893,7 +893,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .block)
@@ -912,7 +912,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .optional(.string))
@@ -931,7 +931,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .variableSizedArray(elementType: .string))
@@ -951,7 +951,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .constantSizedArray(elementType: .string, size: 3))
@@ -973,7 +973,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .dictionary(keyType: .string, elementType: .uint16))
@@ -1000,7 +1000,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .struct(
@@ -1046,7 +1046,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .resource(
@@ -1095,7 +1095,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .event(
@@ -1132,7 +1132,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .contract(
@@ -1187,7 +1187,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .structInterface(
@@ -1249,7 +1249,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .resourceInterface(
@@ -1311,7 +1311,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .contractInterface(
@@ -1356,7 +1356,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .function(
@@ -1384,7 +1384,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .reference(.init(authorized: true, type: .string)))
@@ -1420,7 +1420,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .restriction(
@@ -1459,7 +1459,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .capability(
@@ -1490,7 +1490,7 @@ final class StaticTypeTests: XCTestCase {
         """.data(using: .utf8)!
 
         // When:
-        let value = try decoder.decode(StaticType.self, from: jsonData)
+        let value = try decoder.decode(CType.self, from: jsonData)
 
         // Then
         XCTAssertEqual(value, .enum(

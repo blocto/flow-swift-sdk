@@ -9,9 +9,9 @@ import Foundation
 
 public struct FieldType: Equatable, Codable {
     public let id: String
-    public let type: StaticType
+    public let type: CType
 
-    public init(id: String, type: StaticType) {
+    public init(id: String, type: CType) {
         self.id = id
         self.type = type
     }

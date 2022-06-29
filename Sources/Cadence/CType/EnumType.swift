@@ -9,13 +9,13 @@ import Foundation
 
 public class EnumType: Codable {
 
-    public var type: StaticType
+    public var type: CType
     public let typeId: String
     public var initializers: [InitializerType]
     public var fields: [FieldType]
 
     public init(
-        type: StaticType,
+        type: CType,
         typeId: String,
         initializers: [InitializerType] = [],
         fields: [FieldType]
@@ -45,7 +45,7 @@ public class EnumType: Codable {
 
     public func decodePossibleRepeatedProperties(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        type = try container.decodeStaticType(userInfo: decoder.userInfo, forKey: .type)
+        type = try container.decodeCType(userInfo: decoder.userInfo, forKey: .type)
         initializers = try container.decode([InitializerType].self, forKey: .initializers)
         fields = try container.decode([FieldType].self, forKey: .fields)
     }
