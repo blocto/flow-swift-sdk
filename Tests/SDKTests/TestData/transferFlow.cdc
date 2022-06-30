@@ -1,33 +1,3 @@
-//
-//  FakeScript.swift
-// 
-//  Created by Scott on 2022/6/3.
-//  Copyright © 2022 portto. All rights reserved.
-//
-
-import Foundation
-
-enum FakeScript {
-
-    static var getFlowBalance: String {
-        """
-import FungibleToken from 0x9a0766d93b6608b7
-import FlowToken from 0x7e60df042a9c0868
-
-pub fun main(account: Address): UFix64 {
-
-    let vaultRef = getAccount(account)
-        .getCapability(/public/flowTokenBalance)
-        .borrow<&FlowToken.Vault{FungibleToken.Balance}>()
-        ?? panic("Could not borrow Balance reference to the Vault")
-
-    return vaultRef.balance
-}
-"""
-    }
-
-    static var transferFlow: String {
-        """
 import FungibleToken from 0x9a0766d93b6608b7
 import FlowToken from 0x7e60df042a9c0868
 
@@ -58,9 +28,5 @@ transaction(amount: UFix64, to: Address) {
 
         // Deposit the withdrawn tokens in the recipient's receiver
         receiverRef.deposit(from: <-self.sentVault)
-    }
-}
-"""
-
     }
 }

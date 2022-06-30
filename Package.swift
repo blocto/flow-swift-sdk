@@ -62,7 +62,10 @@ let package = Package(
         ),
         .testTarget(
             name: "SDKTests",
-            dependencies: ["SDK"]
+            dependencies: ["SDK"],
+            resources: [
+                .copy("TestData")
+            ]
         ),
     ],
     swiftLanguageVersions: [.v5]

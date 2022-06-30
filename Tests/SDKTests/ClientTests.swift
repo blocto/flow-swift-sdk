@@ -783,8 +783,8 @@ final class ClientTests: XCTestCase {
         let blockHeight: UInt64 = 69788156
         let balance: UInt64 = 20000098260
         let publicKey: Data = Data(hex: "2b0bf247520770a4bad19e07f6d6b1e8f0542da564154087e2681b175b4432ec2c7b09a52d34dabe0a887ea0f96b067e52c6a0792dcff730fe78a6c5fbbf0a9c")
-        let response = Flow_Access_AccountResponse.with {
-            $0.account = .with {
+        let response = try Flow_Access_AccountResponse.with {
+            $0.account = try .with {
                 $0.address = address.data
                 $0.balance = balance
                 $0.keys = [
@@ -795,7 +795,7 @@ final class ClientTests: XCTestCase {
                         $0.weight = 1000
                     }
                 ]
-                $0.contracts = ["FlowToken": FakeContract.flowToken.data(using: .utf8)!]
+                $0.contracts = ["FlowToken": try Utils.getTestData(name: "FlowToken.cdc")]
             }
         }
         accessAPIClient.enqueueGetAccountAtBlockHeightResponse(response)
@@ -822,7 +822,7 @@ final class ClientTests: XCTestCase {
                     sequenceNumber: 0)
             ],
             contracts: [
-                "FlowToken": FakeContract.flowToken.data(using: .utf8)!
+                "FlowToken": try Utils.getTestData(name: "FlowToken.cdc")
             ])
         XCTAssertEqual(result, expected)
     }
@@ -838,7 +838,7 @@ final class ClientTests: XCTestCase {
 
         // Act
         let result = try sut.executeScriptAtLatestBlock(
-            script: FakeScript.getFlowBalance.data(using: .utf8)!,
+            script: try Utils.getTestData(name: "getFlowBalance.cdc"),
             arguments: arguments)
             .wait()
 
@@ -861,7 +861,7 @@ final class ClientTests: XCTestCase {
         // Act
         let result = try sut.executeScriptAtBlockID(
             blockId: id,
-            script: FakeScript.getFlowBalance.data(using: .utf8)!,
+            script: try Utils.getTestData(name: "getFlowBalance.cdc"),
             arguments: arguments)
             .wait()
 
@@ -884,7 +884,7 @@ final class ClientTests: XCTestCase {
         // Act
         let result = try sut.executeScriptAtBlockHeight(
             height: height,
-            script: FakeScript.getFlowBalance.data(using: .utf8)!,
+            script: try Utils.getTestData(name: "getFlowBalance.cdc"),
             arguments: arguments)
             .wait()
 
@@ -1070,8 +1070,9 @@ final class ClientTests: XCTestCase {
 
     func testGetLatestProtocolStateSnapshot() throws {
         // Arrange
+        let protocolState = try Utils.getHexData(name: "protocolState.hex")
         let response = Flow_Access_ProtocolStateSnapshotResponse.with {
-            $0.serializedSnapshot = FakeProtocolState.state
+            $0.serializedSnapshot = protocolState
         }
         accessAPIClient.enqueueGetLatestProtocolStateSnapshotResponse(response)
 
@@ -1080,7 +1081,7 @@ final class ClientTests: XCTestCase {
 
         // Assert
         XCTAssertFalse(accessAPIClient.hasGetLatestProtocolStateSnapshotResponsesRemaining)
-        XCTAssertEqual(result, FakeProtocolState.state)
+        XCTAssertEqual(result, protocolState)
     }
 
     func testGetExecutionResultForBlockID() throws {
