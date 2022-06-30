@@ -29,12 +29,21 @@
         }
       },
       {
+        "package": "secp256k1Wrapper",
+        "repositoryURL": "https://github.com/portto/secp256k1.git",
+        "state": {
+          "branch": null,
+          "revision": "72b5f1b4ba20cd529f77b0893d20ee43b892cc3f",
+          "version": "0.0.4"
+        }
+      },
+      {
         "package": "secp256k1Swift",
         "repositoryURL": "https://github.com/portto/secp256k1.swift",
         "state": {
           "branch": null,
-          "revision": "384260f763ea0d6de0e428a6bf71d52c15b79d2d",
-          "version": "0.7.1"
+          "revision": "28e8dcbc123136cf89682e2754abc603d783d908",
+          "version": "0.7.2"
         }
       },
       {
