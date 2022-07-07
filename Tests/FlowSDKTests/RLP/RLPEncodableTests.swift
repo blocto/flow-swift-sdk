@@ -6,7 +6,7 @@
 //
 
 import XCTest
-import SDK
+import FlowSDK
 import BigInt
 
 final class RLPEncodableTests: XCTestCase {

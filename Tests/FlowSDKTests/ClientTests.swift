@@ -12,7 +12,7 @@ import Cadence
 import NIO
 import GRPC
 import Crypto
-@testable import SDK
+@testable import FlowSDK
 
 final class ClientTests: XCTestCase {
 

@@ -13,7 +13,7 @@ let package = Package(
     products: [
         .library(
             name: "FlowSDK",
-            targets: ["SDK"])
+            targets: ["FlowSDK"])
     ],
     dependencies: [
         .package(url: "https://github.com/grpc/grpc-swift.git", from: "1.0.0"),
@@ -43,7 +43,7 @@ let package = Package(
             ]
         ),
         .target(
-            name: "SDK",
+            name: "FlowSDK",
             dependencies: [
                 "BigInt",
                 "CryptoSwift",
@@ -61,8 +61,8 @@ let package = Package(
             dependencies: ["Crypto"]
         ),
         .testTarget(
-            name: "SDKTests",
-            dependencies: ["SDK"],
+            name: "FlowSDKTests",
+            dependencies: ["FlowSDK"],
             resources: [
                 .copy("TestData")
             ]

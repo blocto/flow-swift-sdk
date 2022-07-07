@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'FlowSDK'
-  s.version          = '0.1.0'
+  s.version          = '0.1.2'
   s.summary          = 'Flow blockchain swift SDK'
 
   s.homepage         = 'https://github.com/portto/flow-swift-sdk'
@@ -15,7 +15,7 @@ Pod::Spec.new do |s|
   s.tvos.deployment_target = '13.0'
   s.watchos.deployment_target = '6.0'
 
-  s.default_subspec = 'SDK'
+  s.default_subspec = 'FlowSDK'
 
   s.subspec "Crypto" do |ss|
     ss.source_files  = "Sources/Crypto/**/*"
@@ -28,8 +28,8 @@ Pod::Spec.new do |s|
     ss.dependency "gRPC-Swift", "~> 1.7.3"
   end
 
-  s.subspec "SDK" do |ss|
-    ss.source_files  = "Sources/SDK/**/*"
+  s.subspec "FlowSDK" do |ss|
+    ss.source_files  = "Sources/FlowSDK/**/*"
     ss.dependency "BigInt", "~> 5.2.0"
     ss.dependency "CryptoSwift", "~> 1.5.1"
     ss.dependency "Cadence", "~> 0.1.0"
