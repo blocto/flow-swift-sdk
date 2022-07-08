@@ -17,6 +17,9 @@ public enum DomainTag: String {
 
     /// The prefix of all signed user space payloads.
     case user = "FLOW-V0.0-user"
+    
+    /// The prefix of all signed accountProof message.
+    case accountProof = "FCL-ACCOUNT-PROOF-V0.0"
 
     public var rightPaddedData: Data {
         var data = rawValue.data(using: .utf8) ?? Data()
