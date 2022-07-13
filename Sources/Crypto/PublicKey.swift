@@ -27,11 +27,11 @@ public struct PublicKey {
     private let implementation: Implementation
 
     public init(data: Data, signatureAlgorithm: SignatureAlgorithm) throws {
-        self.data = data
         self.algorithm = signatureAlgorithm
 
         switch signatureAlgorithm {
         case .ecdsaP256:
+            self.data = data
             self.implementation = .ecdsaP256(try P256.Signing.PublicKey(rawRepresentation: data))
         case .ecdsaSecp256k1:
             let rawData: Data
@@ -40,7 +40,9 @@ public struct PublicKey {
                 throw Error.unsupportedCompressFormat
             case secp256k1.Format.uncompressed.length:
                 rawData = data
+                self.data = data.dropFirst()
             case secp256k1.Format.uncompressed.length - 1:
+                self.data = data
                 rawData = Data([0x04]) + data
             default:
                 throw Error.incorrectKeySize

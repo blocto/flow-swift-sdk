@@ -42,6 +42,21 @@ final class PublicKeyTests: XCTestCase {
         XCTAssertEqual(result.description, hexText)
     }
 
+    func testECDSASECP256k1WithPrefix() throws {
+        // Arrange
+        let hexText1 = "f0f493b8dbaee23049d456590d20e0da04e28362b0eb6ae2f29b575711e0d803ee30ce467e5d4d6c19ec39418db0ecf94b9707eee2110215b702a2b572e84218"
+        let hexText2 = "04f0f493b8dbaee23049d456590d20e0da04e28362b0eb6ae2f29b575711e0d803ee30ce467e5d4d6c19ec39418db0ecf94b9707eee2110215b702a2b572e84218"
+        let data1 = Data(hex: hexText1)
+        let data2 = Data(hex: hexText2)
+
+        // Act
+        let key1 = try PublicKey(data: data1, signatureAlgorithm: .ecdsaSecp256k1)
+        let key2 = try PublicKey(data: data2, signatureAlgorithm: .ecdsaSecp256k1)
+
+        // Assert
+        XCTAssertEqual(key1, key2)
+    }
+
     func testVerify() throws {
         // Arrange
         let message = "ABC".data(using: .utf8)!
