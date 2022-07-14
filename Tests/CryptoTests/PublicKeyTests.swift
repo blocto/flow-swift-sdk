@@ -57,7 +57,7 @@ final class PublicKeyTests: XCTestCase {
         XCTAssertEqual(key1, key2)
     }
 
-    func testVerify() throws {
+    func testECDSAP256Sha2256Verify() throws {
         // Arrange
         let message = "ABC".data(using: .utf8)!
         let rawKey = Data(hex: "e4784fd7cac1a5b3647119e02247c029e5c4d574943703297e23dc7bd00ab2ce25552ad544eacb956c81b02234742d5f8753165d542f3870705f585a4d93c371")
@@ -71,6 +71,25 @@ final class PublicKeyTests: XCTestCase {
             signature: signature,
             message: message,
             hashAlgorithm: .sha2_256)
+
+        // Assert
+        XCTAssertTrue(result)
+    }
+
+    func testECDSAP256Sha3256Verify() throws {
+        // Arrange
+        let message = "ABC".data(using: .utf8)!
+        let rawKey = Data(hex: "c4ad1364dbd386316767b9efdad226d9f4bdb0d3371f6bbb02ed4444e9458110149363709b783afec9b6b39f180970d9fb79a8e0397941e02de4c25916734b1a")
+        let publicKey = try PublicKey(
+            data: rawKey,
+            signatureAlgorithm: .ecdsaP256)
+        let signature = Data(hex: "f62d6304a965df643c14de8e2f059e6cbf8051bad77b66862f7f7b108ac37dd085012e66b5f10ade34eb9f88994bb1092039749da0b5621e55083f4dcf7a3436")
+
+        // Act
+        let result = try publicKey.verify(
+            signature: signature,
+            message: message,
+            hashAlgorithm: .sha3_256)
 
         // Assert
         XCTAssertTrue(result)
