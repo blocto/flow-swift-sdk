@@ -6,7 +6,9 @@
 //
 
 import Foundation
+#if !COCOAPODS
 import Crypto
+#endif
 
 extension SignatureAlgorithm {
 
