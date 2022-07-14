@@ -57,7 +57,7 @@ public struct PrivateKey {
             return try key.signature(for: digest).rawRepresentation
         case let .ecdsaSecp256k1(key):
             let digest = hashAlgorithm.getDigest(message: message)
-            return try key.ecdsa.signature(for: digest).rawRepresentation
+            return try key.ecdsa.signature(for: digest).compactRepresentation
         }
     }
 }

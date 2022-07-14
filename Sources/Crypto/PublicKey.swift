@@ -48,10 +48,8 @@ public struct PublicKey {
                 throw Error.incorrectKeySize
             }
 
-            let key = secp256k1.Signing.PublicKey(
-                rawRepresentation: rawData,
-                xonly: Data(),
-                keyParity: 0,
+            let key = try secp256k1.Signing.PublicKey(
+                rawRepresentation: [UInt8](rawData),
                 format: .uncompressed)
             self.implementation = .ecdsaSecp256k1(key)
         }
@@ -65,7 +63,7 @@ public struct PublicKey {
             return key.isValidSignature(ecdsaSignature, for: digest)
         case let .ecdsaSecp256k1(key):
             let digest = hashAlgorithm.getDigest(message: message)
-            let ecdsaSignature = try secp256k1.Signing.ECDSASignature(rawRepresentation: signature)
+            let ecdsaSignature = try secp256k1.Signing.ECDSASignature(compactRepresentation: signature)
             return key.ecdsa.isValidSignature(ecdsaSignature, for: digest)
         }
     }
