@@ -33,8 +33,8 @@
         "repositoryURL": "https://github.com/portto/secp256k1.git",
         "state": {
           "branch": null,
-          "revision": "72b5f1b4ba20cd529f77b0893d20ee43b892cc3f",
-          "version": "0.0.4"
+          "revision": "6864a2560066cedede330c4b344689432a7300f7",
+          "version": "0.0.5"
         }
       },
       {
@@ -42,8 +42,8 @@
         "repositoryURL": "https://github.com/portto/secp256k1.swift",
         "state": {
           "branch": null,
-          "revision": "800d38b5a4551cd84c2af7d64eb155dd64d018a2",
-          "version": "0.7.3"
+          "revision": "23aa6bab1f60e513297d0d58a863418f68534e56",
+          "version": "0.7.4"
         }
       },
       {

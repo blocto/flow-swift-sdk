@@ -20,7 +20,7 @@ Pod::Spec.new do |s|
   s.subspec "Crypto" do |ss|
     ss.source_files  = "Sources/Crypto/**/*"
     ss.dependency "CryptoSwift", "~> 1.5.1"
-    ss.dependency "secp256k1Swift", "~> 0.7.3"
+    ss.dependency "secp256k1Swift", "~> 0.7.4"
   end
 
   s.subspec "Protobuf" do |ss|

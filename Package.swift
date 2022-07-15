@@ -19,7 +19,7 @@ let package = Package(
         .package(url: "https://github.com/grpc/grpc-swift.git", from: "1.0.0"),
         .package(url: "https://github.com/attaswift/BigInt.git", from: "5.2.0"),
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", .upToNextMajor(from: "1.5.1")),
-        .package(url: "https://github.com/portto/secp256k1.swift", from: "0.7.3")
+        .package(url: "https://github.com/portto/secp256k1.swift", from: "0.7.4")
     ],
     targets: [
         .target(
