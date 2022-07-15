@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'FlowSDK'
-  s.version          = '0.1.2'
+  s.version          = '0.1.3'
   s.summary          = 'Flow blockchain swift SDK'
 
   s.homepage         = 'https://github.com/portto/flow-swift-sdk'
@@ -20,7 +20,7 @@ Pod::Spec.new do |s|
   s.subspec "Crypto" do |ss|
     ss.source_files  = "Sources/Crypto/**/*"
     ss.dependency "CryptoSwift", "~> 1.5.1"
-    ss.dependency "secp256k1Swift", "~> 0.7.1"
+    ss.dependency "secp256k1Swift", "~> 0.7.3"
   end
 
   s.subspec "Protobuf" do |ss|
