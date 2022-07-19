@@ -316,7 +316,7 @@ final class ClientTests: XCTestCase {
         let referenceBlockId = Identifier(hexString: "e0521151ba45f98ff91b6ccabdddd73a68fd8f72c75beb80e70e99304397aee5")
         let payer = Address(hexString: "0x383bd00f77a585bc")
         let proposalKey = Address(hexString: "0xb4e959600bd0f29e")
-        let transaction = try Transaction(
+        let transaction = Transaction(
             script: script,
             referenceBlockId: referenceBlockId,
             proposalKey: Transaction.ProposalKey(
