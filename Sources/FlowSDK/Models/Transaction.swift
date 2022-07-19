@@ -77,7 +77,28 @@ public struct Transaction: Equatable {
 
     public init(
         script: Data,
-        arguments: [Cadence.Value] = [],
+        referenceBlockId: Identifier,
+        gasLimit: UInt64 = 9999,
+        proposalKey: ProposalKey,
+        payer: Address,
+        authorizers: [Address] = [],
+        payloadSignatures: [Signature] = [],
+        envelopeSignatures: [Signature] = []
+    ) {
+        self.script = script
+        self.arguments = []
+        self.referenceBlockId = referenceBlockId
+        self.gasLimit = gasLimit
+        self.proposalKey = proposalKey
+        self.payer = payer
+        self.authorizers = authorizers
+        self.payloadSignatures = payloadSignatures
+        self.envelopeSignatures = envelopeSignatures
+    }
+
+    public init(
+        script: Data,
+        arguments: [Cadence.Value],
         referenceBlockId: Identifier,
         gasLimit: UInt64 = 9999,
         proposalKey: ProposalKey,
@@ -86,17 +107,18 @@ public struct Transaction: Equatable {
         payloadSignatures: [Signature] = [],
         envelopeSignatures: [Signature] = []
     ) throws {
-        self.script = script
+        self.init(
+            script: script,
+            referenceBlockId: referenceBlockId,
+            gasLimit: gasLimit,
+            proposalKey: proposalKey,
+            payer: payer,
+            authorizers: authorizers,
+            payloadSignatures: payloadSignatures,
+            envelopeSignatures: envelopeSignatures)
         let encoder = JSONEncoder()
         encoder.outputFormatting = .withoutEscapingSlashes
         self.arguments = try arguments.map { try encoder.encode($0) }
-        self.referenceBlockId = referenceBlockId
-        self.gasLimit = gasLimit
-        self.proposalKey = proposalKey
-        self.payer = payer
-        self.authorizers = authorizers
-        self.payloadSignatures = payloadSignatures
-        self.envelopeSignatures = envelopeSignatures
     }
 
     init(_ value: Flow_Entities_Transaction) {
@@ -123,6 +145,10 @@ public struct Transaction: Equatable {
         }
     }
 
+    public func getArugment(at index: Int) throws -> Cadence.Value {
+        return try JSONDecoder().decode(Cadence.Value.self, from: arguments[index])
+    }
+
     /// Adds a Cadence argument to this transaction.
     public mutating func addArgument(value: Cadence.Value) throws {
         let encoder = JSONEncoder()
@@ -132,7 +158,12 @@ public struct Transaction: Equatable {
     }
 
     /// Adds a raw JSON-CDC encoded argument to this transaction.
-    public mutating func addRawArgument(_ arguments: [Data]) {
+    public mutating func addRawArgument(_ argument: Data) {
+        self.arguments.append(argument)
+    }
+
+    /// Adds raw JSON-CDC encoded arguments to this transaction.
+    public mutating func addRawArguments(_ arguments: [Data]) {
         self.arguments = arguments
     }
 

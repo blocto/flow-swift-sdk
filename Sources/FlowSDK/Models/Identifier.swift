@@ -10,6 +10,8 @@ import CryptoSwift
 
 public struct Identifier: Equatable {
 
+    public static let empty = Identifier(data: Data(repeating: 0, count: 32))
+
     public let data: Data
 
     public var hexString: String {

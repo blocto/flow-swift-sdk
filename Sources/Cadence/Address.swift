@@ -42,8 +42,10 @@ public struct Address: Equatable, Hashable {
         return result
     }
 
+    /// If b is larger than 8, b will be cropped from the left.
+    /// If b is smaller than 8, b will be appended by zeroes at the front.
     public init(data: Data) {
-        self.data = data
+        self.data = data.normalized
     }
 
     public init(hexString: String) {
@@ -61,14 +63,31 @@ extension Address: Codable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        data = try container.decodeHexString()
+        data = try container.decodeHexString().normalized
     }
 }
 
 // MARK: - CustomStringConvertible
+
 extension Address: CustomStringConvertible {
 
     public var description: String {
         "0x" + hexString
+    }
+}
+
+// MARK: - Data
+
+private extension Data {
+
+    var normalized: Data {
+        switch count {
+        case 0..<Address.length:
+            return Data(repeating: 0, count: Address.length - count) + self
+        case Address.length:
+            return self
+        default:
+            return self[(count - Address.length) ..< count]
+        }
     }
 }
