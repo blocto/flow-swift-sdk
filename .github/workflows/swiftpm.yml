@@ -1,4 +1,4 @@
-name: SwiftPM
+name: Test
 
 on:
   push:
