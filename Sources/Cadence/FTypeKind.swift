@@ -1,5 +1,5 @@
 //
-//  CTypeKind.swift
+//  FTypeKind.swift
 // 
 //  Created by Scott on 2022/6/21.
 //  Copyright © 2022 portto. All rights reserved.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum CTypeKind: String, Equatable, Codable {
+public enum FTypeKind: String, Equatable, Codable {
     case `any` = "Any"
     case anyStruct = "AnyStruct"
     case anyResource = "AnyResource"

@@ -10,12 +10,12 @@ import Foundation
 public class FunctionType: Codable {
     public let typeId: String
     public var parameters: [ParameterType]
-    public var `return`: CType
+    public var `return`: FType
 
     public init(
         typeId: String,
         parameters: [ParameterType] = [],
-        return: CType = .void
+        return: FType = .void
     ) {
         self.typeId = typeId
         self.parameters = parameters

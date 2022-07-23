@@ -10,12 +10,12 @@ import Foundation
 public struct ParameterType: Equatable, Codable {
     public let label: String
     public let id: String
-    public let type: CType
+    public let type: FType
 
     public init(
         label: String,
         id: String,
-        type: CType
+        type: FType
     ) {
         self.label = label
         self.id = id

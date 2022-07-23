@@ -35,9 +35,9 @@ enum Format {
     case path(
         domain: String,
         identifier: String)
-    case type(CType)
+    case type(FType)
     case capability(
-        borrowType: CType,
+        borrowType: FType,
         address: Address,
         path: String)
 }

@@ -9,13 +9,13 @@ import Foundation
 
 public class EnumType: Codable {
 
-    public var type: CType
+    public var type: FType
     public let typeId: String
     public var initializers: [InitializerType]
     public var fields: [FieldType]
 
     public init(
-        type: CType,
+        type: FType,
         typeId: String,
         initializers: [InitializerType] = [],
         fields: [FieldType]

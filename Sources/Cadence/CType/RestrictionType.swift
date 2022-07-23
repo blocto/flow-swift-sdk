@@ -9,13 +9,13 @@ import Foundation
 
 public class RestrictionType: Codable {
     public let typeId: String
-    public var type: CType
-    public var restrictions: [CType]
+    public var type: FType
+    public var restrictions: [FType]
 
     public init(
         typeId: String,
-        type: CType,
-        restrictions: [CType]
+        type: FType,
+        restrictions: [FType]
     ) {
         self.typeId = typeId
         self.type = type
@@ -40,7 +40,7 @@ public class RestrictionType: Codable {
     public func decodePossibleRepeatedProperties(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         type = try container.decodeCType(userInfo: decoder.userInfo, forKey: .type)
-        restrictions = try container.decode([CType].self, forKey: .restrictions)
+        restrictions = try container.decode([FType].self, forKey: .restrictions)
     }
 }
 

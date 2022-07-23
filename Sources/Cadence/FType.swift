@@ -1,5 +1,5 @@
 //
-//  CType.swift
+//  FType.swift
 // 
 //  Created by Scott on 2022/6/21.
 //  Copyright © 2022 portto. All rights reserved.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum CType: Equatable {
+public enum FType: Equatable {
     case `any`
     case anyStruct
     case anyResource
@@ -59,10 +59,10 @@ public enum CType: Equatable {
     case deployedContract
     case accountKey
     case block
-    indirect case optional(CType)
-    indirect case variableSizedArray(elementType: CType)
-    indirect case constantSizedArray(elementType: CType, size: Int)
-    indirect case dictionary(keyType: CType, elementType: CType)
+    indirect case optional(FType)
+    indirect case variableSizedArray(elementType: FType)
+    indirect case constantSizedArray(elementType: FType, size: Int)
+    indirect case dictionary(keyType: FType, elementType: FType)
     indirect case `struct`(CompositeType)
     indirect case resource(CompositeType)
     indirect case event(CompositeType)
@@ -73,10 +73,10 @@ public enum CType: Equatable {
     indirect case function(FunctionType)
     indirect case reference(ReferenceType)
     indirect case restriction(RestrictionType)
-    indirect case capability(borrowType: CType)
+    indirect case capability(borrowType: FType)
     indirect case `enum`(EnumType)
 
-    public var kind: CTypeKind {
+    public var kind: FTypeKind {
         switch self {
         case .any:
             return .any
@@ -273,7 +273,7 @@ public enum CType: Equatable {
 
 // MARK: - Codable
 
-extension CType: Codable {
+extension FType: Codable {
 
     enum CodingKeys: CodingKey {
         case kind
@@ -297,7 +297,7 @@ extension CType: Codable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        let kind = try container.decode(CTypeKind.self, forKey: .kind)
+        let kind = try container.decode(FTypeKind.self, forKey: .kind)
         switch kind {
         case .any:
             self = .any
@@ -481,8 +481,8 @@ extension CType: Codable {
 
 private extension Decoder {
 
-    func addTypeToDecodingResultsIfPossible(type: CType, typeId: String) {
-        if let results = userInfo[.decodingResults] as? CTypeDecodingResults {
+    func addTypeToDecodingResultsIfPossible(type: FType, typeId: String) {
+        if let results = userInfo[.decodingResults] as? FTypeDecodingResults {
             results.value = [typeId: type]
         }
     }

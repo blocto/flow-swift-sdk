@@ -796,7 +796,7 @@ final class ValueTests: XCTestCase {
             typeId: "0x3.GreatContract.NFT",
             initializers: [],
             fields: [])
-        let type = CType.resource(resource)
+        let type = FType.resource(resource)
         resource.fields = [
             .init(id: "foo", type: .optional(type))
         ]

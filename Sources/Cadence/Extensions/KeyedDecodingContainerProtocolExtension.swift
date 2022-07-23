@@ -76,9 +76,9 @@ extension KeyedDecodingContainerProtocol {
     func decodeCType(
         userInfo: [CodingUserInfoKey: Any],
         forKey key: Self.Key
-    ) throws -> CType {
+    ) throws -> FType {
         if let typeId = try? decode(String.self, forKey: key) {
-            if let results = userInfo[.decodingResults] as? CTypeDecodingResults,
+            if let results = userInfo[.decodingResults] as? FTypeDecodingResults,
                let type = results.value[typeId] {
                 return type
             } else {
@@ -88,7 +88,7 @@ extension KeyedDecodingContainerProtocol {
                     debugDescription: "TypeID(\(typeId)) Not found")
             }
         } else {
-            let type = try decode(CType.self, forKey: key)
+            let type = try decode(FType.self, forKey: key)
             return type
         }
     }
