@@ -22,7 +22,7 @@ public enum Network: String {
         case .canarynet:
             return Endpoint(host: "access.canary.nodes.onflow.org", port: 9000)
         case .emulator:
-            return Endpoint(host: "127.0.0.1", port: 9000)
+            return Endpoint(host: "127.0.0.1", port: 3569)
         }
     }
 }

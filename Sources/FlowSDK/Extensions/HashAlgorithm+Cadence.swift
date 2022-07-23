@@ -1,0 +1,39 @@
+//
+//  HashAlgorithm.swift
+//
+//  Created by Scott on 2022/7/24.
+//  Copyright © 2022 portto. All rights reserved.
+//
+
+import Foundation
+import Cadence
+#if !COCOAPODS
+import Crypto
+#endif
+
+public extension HashAlgorithm {
+
+    var cadenceValue: Cadence.Value {
+        .enum(
+            .init(
+                id: "HashAlgorithm",
+                fields: [
+                    .init(
+                        name: "rawValue",
+                        value: .uint8(cadenceRawValue)
+                    )
+                ]
+            )
+        )
+    }
+
+    var cadenceRawValue: UInt8 {
+        switch self {
+        case .sha2_256:
+            return 1
+        case .sha3_256:
+            return 3
+        }
+    }
+
+}

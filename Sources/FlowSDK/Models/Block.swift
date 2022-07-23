@@ -17,6 +17,10 @@ public struct Block: Equatable {
 
     public let blockPayload: BlockPayload
 
+    var id: Identifier {
+        blockHeader.id
+    }
+
     public init(blockHeader: BlockHeader, blockPayload: BlockPayload) {
         self.blockHeader = blockHeader
         self.blockPayload = blockPayload

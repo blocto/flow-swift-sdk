@@ -1,16 +1,10 @@
 import Crypto
 
-transaction(publicKey: String, signatureAlgorithm: UInt8, hashAlgorithm: UInt8, weight: UFix64) {
+transaction(publicKey: PublicKey, hashAlgorithm: HashAlgorithm, weight: UFix64) {
     prepare(signer: AuthAccount) {
-        let key = PublicKey(
-            publicKey: publicKey.decodeHex(),
-            signatureAlgorithm: SignatureAlgorithm(rawValue: signatureAlgorithm)!
-        )
         let account = AuthAccount(payer: signer)
-        account.keys.add(
-            publicKey: key,
-            hashAlgorithm: HashAlgorithm(rawValue: hashAlgorithm)!,
-            weight: weight
-        )
+
+        // add a key to the account
+        account.keys.add(publicKey: publicKey, hashAlgorithm: hashAlgorithm, weight: weight)
     }
 }

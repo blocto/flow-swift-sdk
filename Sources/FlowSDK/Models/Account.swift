@@ -60,7 +60,7 @@ public struct AccountKey: Equatable {
 
     public let signatureAlgorithm: SignatureAlgorithm
 
-    public let hashAlgorithm: HashAlgorithm?
+    public let hashAlgorithm: HashAlgorithm
 
     public let weight: Int
 
@@ -72,7 +72,7 @@ public struct AccountKey: Equatable {
         index: Int,
         publicKey: PublicKey,
         signatureAlgorithm: SignatureAlgorithm,
-        hashAlgorithm: HashAlgorithm?,
+        hashAlgorithm: HashAlgorithm,
         weight: Int,
         sequenceNumber: UInt64,
         revoked: Bool = false
@@ -92,7 +92,10 @@ public struct AccountKey: Equatable {
             throw Error.unsupportedSignatureAlgorithm
         }
         self.signatureAlgorithm = signatureAlgorithm
-        self.hashAlgorithm = HashAlgorithm(rawValue: value.hashAlgo)
+        guard let hashAlgorithm = HashAlgorithm(rawValue: value.hashAlgo) else {
+            throw Error.unsupportedHashAlgorithm
+        }
+        self.hashAlgorithm = hashAlgorithm
         self.publicKey = try PublicKey(data: value.publicKey, signatureAlgorithm: signatureAlgorithm)
         self.weight = Int(value.weight)
         self.sequenceNumber = UInt64(value.sequenceNumber)
@@ -101,6 +104,7 @@ public struct AccountKey: Equatable {
 
     public enum Error: Swift.Error {
         case unsupportedSignatureAlgorithm
+        case unsupportedHashAlgorithm
     }
 
 }

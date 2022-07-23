@@ -10,9 +10,9 @@ import Foundation
 import Crypto
 #endif
 
-extension SignatureAlgorithm {
+public extension SignatureAlgorithm {
 
-    public var cadenceValue: UInt8 {
+    var cadenceRawValue: UInt8 {
         switch self {
         case .ecdsaP256:
             return 1
