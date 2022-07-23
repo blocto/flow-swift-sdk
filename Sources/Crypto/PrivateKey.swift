@@ -28,6 +28,24 @@ public struct PrivateKey {
         data.toHexString()
     }
 
+    public init(signatureAlgorithm: SignatureAlgorithm) throws {
+        self.algorithm = signatureAlgorithm
+
+        switch signatureAlgorithm {
+        case .ecdsaP256:
+            let key = P256.Signing.PrivateKey(compactRepresentable: false)
+            self.data = key.rawRepresentation
+            self.publicKey = try PublicKey(data: key.publicKey.rawRepresentation, signatureAlgorithm: .ecdsaP256)
+            self.implementation = .ecdsaP256(key)
+        case .ecdsaSecp256k1:
+            let key = try secp256k1.Signing.PrivateKey(format: .uncompressed)
+            self.data = key.rawRepresentation
+            let rawPublicKey = key.publicKey.rawRepresentation
+            self.publicKey = try PublicKey(data: rawPublicKey.dropFirst(), signatureAlgorithm: .ecdsaSecp256k1)
+            self.implementation = .ecdsaSecp256k1(key)
+        }
+    }
+
     public init(data: Data, signatureAlgorithm: SignatureAlgorithm) throws {
         self.data = data
         self.algorithm = signatureAlgorithm
