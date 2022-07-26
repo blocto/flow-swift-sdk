@@ -7,6 +7,7 @@
 
 import Foundation
 import BigInt
+import Combine
 
 public enum Value: Equatable {
     case void
@@ -247,6 +248,237 @@ extension Value: Codable {
         case .capability:
             self = .capability(try container.decode(Capability.self, forKey: .value))
         }
+    }
+}
+
+// MARK: - To Swift Value
+
+extension Value {
+
+    public enum ValueDecodingError: Swift.Error {
+        case mismatchType
+        case invalidDictionaryKey
+        case inconsistentDictionaryKeyType
+    }
+
+    private struct CompositeEnumWrapper<T: Decodable>: Decodable {
+        let rawValue: T
+    }
+
+    public func toSwiftValue<T: Decodable>(decodableType: T.Type = T.self) throws -> T {
+        if let value = try toSwiftValue(decodableType: Optional<T>.self) {
+            return value
+        } else {
+            throw ValueDecodingError.mismatchType
+        }
+    }
+
+    public func toSwiftValue<T: Decodable>(decodableType: Optional<T>.Type = Optional<T>.self) throws -> T? {
+        guard let rawValue = try toSwiftRawValue() else {
+            return nil
+        }
+
+        if let value = rawValue as? T {
+            return value
+        }
+
+        guard JSONSerialization.isValidJSONObject(rawValue) else {
+            throw ValueDecodingError.mismatchType
+        }
+
+        let data = try JSONSerialization.data(
+            withJSONObject: rawValue,
+            options: [.fragmentsAllowed])
+
+        switch self {
+        case .enum:
+            return try JSONDecoder().decode(CompositeEnumWrapper<T>.self, from: data).rawValue
+        default:
+            return try JSONDecoder().decode(T.self, from: data)
+        }
+    }
+
+    private func toSwiftRawValue() throws -> Any? {
+        switch self {
+        case .void:
+            return nil
+        case let .optional(value):
+            return try value?.toSwiftRawValue()
+        case let .bool(bool):
+            return bool
+        case let .string(string):
+            return string
+        case let .address(address):
+            return address
+        case let .int(bigInt):
+            return bigInt
+        case let .uint(bigUInt):
+            return bigUInt
+        case let .int8(int8):
+            return int8
+        case let .uint8(uint8):
+            return uint8
+        case let .int16(int16):
+            return int16
+        case let .uint16(uint16):
+            return uint16
+        case let .int32(int32):
+            return int32
+        case let .uint32(uint32):
+            return uint32
+        case let .int64(int64):
+            return int64
+        case let .uint64(uint64):
+            return uint64
+        case let .int128(bigInt):
+            return bigInt
+        case let .uint128(bigUInt):
+            return bigUInt
+        case let .int256(bigInt):
+            return bigInt
+        case let .uint256(bigUInt):
+            return bigUInt
+        case let .word8(uint8):
+            return uint8
+        case let .word16(uint16):
+            return uint16
+        case let .word32(uint32):
+            return uint32
+        case let .word64(uint64):
+            return uint64
+        case let .fix64(decimal):
+            return decimal
+        case let .ufix64(decimal):
+            return decimal
+        case let .array(array):
+            return try array.map { try $0.toSwiftRawValue() }
+        case let .dictionary(dictionary):
+            guard let firstElement = dictionary.first else {
+                return [:]
+            }
+            switch firstElement.key.type {
+            case .void:
+                throw ValueDecodingError.invalidDictionaryKey
+            case .optional:
+                throw ValueDecodingError.invalidDictionaryKey
+            case .bool:
+                return try makeSwiftDictionary(dictionary, type: Bool.self)
+            case .string:
+                return try makeSwiftDictionary(dictionary, type: String.self)
+            case .address:
+                return try makeSwiftDictionary(dictionary, type: Address.self)
+            case .int:
+                return try makeSwiftDictionary(dictionary, type: BigInt.self)
+            case .uint:
+                return try makeSwiftDictionary(dictionary, type: BigUInt.self)
+            case .int8:
+                return try makeSwiftDictionary(dictionary, type: Int8.self)
+            case .uint8:
+                return try makeSwiftDictionary(dictionary, type: UInt8.self)
+            case .int16:
+                return try makeSwiftDictionary(dictionary, type: Int16.self)
+            case .uint16:
+                return try makeSwiftDictionary(dictionary, type: UInt16.self)
+            case .int32:
+                return try makeSwiftDictionary(dictionary, type: Int32.self)
+            case .uint32:
+                return try makeSwiftDictionary(dictionary, type: UInt32.self)
+            case .int64:
+                return try makeSwiftDictionary(dictionary, type: Int64.self)
+            case .uint64:
+                return try makeSwiftDictionary(dictionary, type: UInt64.self)
+            case .int128:
+                return try makeSwiftDictionary(dictionary, type: BigInt.self)
+            case .uint128:
+                return try makeSwiftDictionary(dictionary, type: BigUInt.self)
+            case .int256:
+                return try makeSwiftDictionary(dictionary, type: BigInt.self)
+            case .uint256:
+                return try makeSwiftDictionary(dictionary, type: BigUInt.self)
+            case .word8:
+                return try makeSwiftDictionary(dictionary, type: Int8.self)
+            case .word16:
+                return try makeSwiftDictionary(dictionary, type: Int16.self)
+            case .word32:
+                return try makeSwiftDictionary(dictionary, type: Int32.self)
+            case .word64:
+                return try makeSwiftDictionary(dictionary, type: Int64.self)
+            case .fix64:
+                return try makeSwiftDictionary(dictionary, type: Decimal.self)
+            case .ufix64:
+                return try makeSwiftDictionary(dictionary, type: Decimal.self)
+            case .array,
+                 .dictionary,
+                 .struct,
+                 .resource,
+                 .event,
+                 .contract,
+                 .enum,
+                 .path,
+                 .type,
+                 .capability:
+                throw ValueDecodingError.invalidDictionaryKey
+            }
+        case let .struct(compositeStruct):
+            return try convertCompositeToDictionary(compositeStruct)
+        case let .resource(compositeResource):
+            return try convertCompositeToDictionary(compositeResource)
+        case let .event(compositeEvent):
+            return try convertCompositeToDictionary(compositeEvent)
+        case let .contract(compositeContract):
+            return try convertCompositeToDictionary(compositeContract)
+        case let .enum(compositeEnum):
+            return try convertCompositeToDictionary(compositeEnum)
+        case let .path(path):
+            return path
+        case let .type(staticTypeValue):
+            return staticTypeValue.staticType
+        case let .capability(capability):
+            return capability
+        }
+    }
+
+    private func makeSwiftDictionary<KeyType: Hashable>(
+        _ dictionary: [Cadence.Dictionary],
+        type: KeyType.Type = KeyType.self
+    ) throws -> [KeyType: Any] {
+        var result: [KeyType: Any] = [:]
+        try dictionary.forEach {
+            guard let key = try $0.key.toSwiftRawValue() as? KeyType else {
+                throw ValueDecodingError.inconsistentDictionaryKeyType
+            }
+            let value = try $0.value.toSwiftRawValue()
+            result[key] = value
+        }
+        return result
+    }
+
+    private func convertCompositeToDictionary(_ composite: Composite) throws -> [String: Any?] {
+        var result: [String: Any] = [:]
+        try composite.fields.forEach {
+            let value = try $0.value.toSwiftRawValue()
+            if let bigInt = value as? BigInt {
+                result[$0.name] = bigInt.description
+            } else if let bigUInt = value as? BigUInt {
+                result[$0.name] = bigUInt.description
+            } else if let encodable = value as? Encodable {
+                let value = try encodable.encoded(with: JSONEncoder())
+                result[$0.name] = try JSONSerialization.jsonObject(
+                    with: value,
+                    options: [.fragmentsAllowed])
+            } else {
+                result[$0.name] = value
+            }
+        }
+        return result
+    }
+
+}
+
+private extension Encodable {
+
+    func encoded<Encoder: TopLevelEncoder>(with encoder: Encoder) throws -> Data where Encoder.Output == Data {
+        try encoder.encode(self)
     }
 }
 

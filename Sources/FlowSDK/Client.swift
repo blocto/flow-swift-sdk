@@ -228,7 +228,7 @@ final public class Client {
     /// Executes a read-only Cadence script against the latest sealed execution state.
     public func executeScriptAtLatestBlock(
         script: Data,
-        arguments: [Cadence.Value],
+        arguments: [Cadence.Value] = [],
         options: CallOptions? = nil
     ) -> EventLoopFuture<Cadence.Value> {
         let encoder = JSONEncoder()
