@@ -6,9 +6,6 @@
 //
 
 import Foundation
-#if !COCOAPODS
-import Protobuf
-#endif
 
 /// The events that occurred in a specific block.
 public struct BlockEvents: Equatable {

@@ -6,9 +6,6 @@
 //
 
 import Foundation
-#if !COCOAPODS
-import Protobuf
-#endif
 
 public struct TransactionResult: Equatable {
     public let status: TransactionStatus?

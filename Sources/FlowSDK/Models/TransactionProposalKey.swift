@@ -7,9 +7,6 @@
 
 import Foundation
 import Cadence
-#if !COCOAPODS
-import Protobuf
-#endif
 
 extension Transaction {
 

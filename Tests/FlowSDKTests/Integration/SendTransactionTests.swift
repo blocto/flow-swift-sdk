@@ -7,12 +7,11 @@
 
 import XCTest
 import Cadence
-import Crypto
 @testable import FlowSDK
 
 final class SendTransactionTests: XCTestCase {
 
-    func testCreateAccount() throws {
+    func testCreateAccount() async throws {
         // Arrange
         let client = Client(network: .testnet)
         let address = Address(hexString: "0xe242ccfb4b8ea3e2")
@@ -20,7 +19,7 @@ final class SendTransactionTests: XCTestCase {
         let privateKey = try PrivateKey(data: rawKey, signatureAlgorithm: .ecdsaP256)
 
         let signer = InMemorySigner(privateKey: privateKey, hashAlgorithm: .sha2_256)
-        guard let adminAccount = try client.getAccountAtLatestBlock(address: address).wait() else {
+        guard let adminAccount = try await client.getAccountAtLatestBlock(address: address) else {
             XCTFail("adminAccount not found.")
             return
         }
@@ -37,7 +36,7 @@ final class SendTransactionTests: XCTestCase {
             weight: 1000,
             sequenceNumber: 0
         )
-        guard let referenceBlock = try client.getLatestBlock(isSealed: true).wait() else {
+        guard let referenceBlock = try await client.getLatestBlock(isSealed: true) else {
             XCTFail("getLatestBlock is nil")
             return
         }
@@ -63,13 +62,13 @@ final class SendTransactionTests: XCTestCase {
         try transaction.signEnvelope(address: address, keyIndex: 0, signer: signer)
 
         // Act
-        let identifier = try client.sendTransaction(transaction: transaction).wait()
+        let identifier = try await client.sendTransaction(transaction: transaction)
         debugPrint(identifier.hexString)
 
         // Assert
         var result: TransactionResult?
         while result?.status != .sealed  {
-            result = try client.getTransactionResult(id: identifier).wait()
+            result = try await client.getTransactionResult(id: identifier)
             sleep(5)
         }
         guard let finalResult = result else {

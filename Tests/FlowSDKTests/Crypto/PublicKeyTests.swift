@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import Crypto
+@testable import FlowSDK
 
 final class PublicKeyTests: XCTestCase {
 

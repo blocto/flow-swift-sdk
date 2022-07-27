@@ -6,9 +6,6 @@
 //
 
 import Foundation
-#if !COCOAPODS
-import Protobuf
-#endif
 
 /// A Collection is a list of transactions bundled together for inclusion in a block.
 public struct Collection: Equatable {

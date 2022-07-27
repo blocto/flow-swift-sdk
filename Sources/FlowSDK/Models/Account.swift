@@ -7,10 +7,6 @@
 
 import Foundation
 import Cadence
-#if !COCOAPODS
-import Protobuf
-import Crypto
-#endif
 
 /// An account on the Flow network.
 public struct Account: Equatable {

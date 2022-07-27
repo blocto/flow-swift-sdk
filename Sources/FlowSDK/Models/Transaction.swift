@@ -8,10 +8,6 @@
 import Foundation
 import Cadence
 import CryptoSwift
-#if !COCOAPODS
-import Protobuf
-import Crypto
-#endif
 
 /// A full transaction object containing a payload and signatures.
 public struct Transaction: Equatable {

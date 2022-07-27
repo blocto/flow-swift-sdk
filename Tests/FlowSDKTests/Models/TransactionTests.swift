@@ -6,7 +6,6 @@
 //
 
 import XCTest
-import Crypto
 import Cadence
 @testable import FlowSDK
 

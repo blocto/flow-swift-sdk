@@ -6,9 +6,6 @@
 //
 
 import Foundation
-#if !COCOAPODS
-import Protobuf
-#endif
 
 /// Block is a set of state mutations applied to the Flow blockchain.
 public struct Block: Equatable {
@@ -17,7 +14,7 @@ public struct Block: Equatable {
 
     public let blockPayload: BlockPayload
 
-    var id: Identifier {
+    public var id: Identifier {
         blockHeader.id
     }
 

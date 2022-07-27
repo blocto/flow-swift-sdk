@@ -7,7 +7,6 @@
 
 import XCTest
 import Cadence
-import Crypto
 @testable import FlowSDK
 
 final class SendScriptTests: XCTestCase {
@@ -22,16 +21,16 @@ final class SendScriptTests: XCTestCase {
         client = nil
     }
 
-    func testFlowPing() throws {
-        XCTAssertNoThrow(try client.ping().wait())
+    func testFlowPing() async throws {
+        try await client.ping()
     }
 
-    func testFlowFee() throws {
+    func testFlowFee() async throws {
         // Act
-        let result = try client.executeScriptAtLatestBlock(
+        let result = try await client.executeScriptAtLatestBlock(
             script: try Utils.getTestData(name: "getFlowFees.cdc"),
             arguments: []
-        ).wait()
+        )
 
         // Assert
         XCTAssertEqual(result, .struct(.init(

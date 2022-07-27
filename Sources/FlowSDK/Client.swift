@@ -7,9 +7,6 @@
 
 import Foundation
 import Cadence
-#if !COCOAPODS
-import Protobuf
-#endif
 import NIO
 import GRPC
 
@@ -17,7 +14,7 @@ import GRPC
 final public class Client {
 
     private let eventLoopGroup: EventLoopGroup
-    private let accessAPIClient: Flow_Access_AccessAPIClientProtocol
+    private let accessAPIClient: Flow_Access_AccessAPIAsyncClientProtocol
 
     public convenience init(host: String, port: Int) {
         let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
@@ -27,7 +24,7 @@ final public class Client {
                 eventLoopGroup: eventLoopGroup))
         self.init(
             eventLoopGroup: eventLoopGroup,
-            accessAPIClient: Flow_Access_AccessAPIClient(channel: channel))
+            accessAPIClient: Flow_Access_AccessAPIAsyncClient(channel: channel))
     }
 
     public convenience init(network: Network) {
@@ -36,7 +33,7 @@ final public class Client {
     }
 
     init(eventLoopGroup: EventLoopGroup,
-         accessAPIClient: Flow_Access_AccessAPIClientProtocol) {
+         accessAPIClient: Flow_Access_AccessAPIAsyncClientProtocol) {
         self.eventLoopGroup = eventLoopGroup
         self.accessAPIClient = accessAPIClient
     }
@@ -60,154 +57,141 @@ final public class Client {
     }
 
     /// Check if the access node is alive and healthy.
-    public func ping(options: CallOptions? = nil) -> EventLoopFuture<Void> {
+    public func ping(options: CallOptions? = nil) async throws {
         let request = Flow_Access_PingRequest()
-        return accessAPIClient.ping(request, callOptions: options)
-            .response
-            .map { _ in () }
+        _ = try await accessAPIClient.ping(request, callOptions: options)
     }
 
     /// Gets a block header by ID.
     public func getLatestBlockHeader(
         isSealed: Bool,
         options: CallOptions? = nil
-    ) -> EventLoopFuture<BlockHeader?> {
+    ) async throws -> BlockHeader? {
         let request = Flow_Access_GetLatestBlockHeaderRequest.with {
             $0.isSealed = false
         }
-        return accessAPIClient.getLatestBlockHeader(request, callOptions: options)
-            .response
-            .map { $0.hasBlock ? BlockHeader($0.block) : nil }
+        let response = try await accessAPIClient.getLatestBlockHeader(request, callOptions: options)
+        return response.hasBlock ? BlockHeader(response.block) : nil
     }
 
     /// Gets a block header by ID.
     public func getBlockHeaderById(
         blockId: Identifier,
         options: CallOptions? = nil
-    ) -> EventLoopFuture<BlockHeader?> {
+    ) async throws -> BlockHeader? {
         let request = Flow_Access_GetBlockHeaderByIDRequest.with {
             $0.id = blockId.data
         }
-        return accessAPIClient.getBlockHeaderByID(request, callOptions: options)
-            .response
-            .map { $0.hasBlock ? BlockHeader($0.block) : nil }
+        let response = try await accessAPIClient.getBlockHeaderByID(request, callOptions: options)
+        return response.hasBlock ? BlockHeader(response.block) : nil
     }
 
     /// Gets a block header by height.
     public func getBlockHeaderByHeight(
         height: UInt64,
         options: CallOptions? = nil
-    ) -> EventLoopFuture<BlockHeader?> {
+    ) async throws -> BlockHeader? {
         let request = Flow_Access_GetBlockHeaderByHeightRequest.with {
             $0.height = height
         }
-        return accessAPIClient.getBlockHeaderByHeight(request, callOptions: options)
-            .response
-            .map { $0.hasBlock ? BlockHeader($0.block) : nil }
+        let response = try await accessAPIClient.getBlockHeaderByHeight(request, callOptions: options)
+        return response.hasBlock ? BlockHeader(response.block) : nil
     }
 
     /// Gets the full payload of the latest sealed or unsealed block.
     public func getLatestBlock(
         isSealed: Bool,
         options: CallOptions? = nil
-    ) -> EventLoopFuture<Block?> {
+    ) async throws -> Block? {
         let request = Flow_Access_GetLatestBlockRequest.with {
             $0.isSealed = isSealed
         }
-        return accessAPIClient.getLatestBlock(request, callOptions: options)
-            .response
-            .map { $0.hasBlock ? Block($0.block) : nil }
+        let response = try await accessAPIClient.getLatestBlock(request, callOptions: options)
+        return response.hasBlock ? Block(response.block) : nil
     }
 
     /// Gets a full block by ID.
     public func getBlockByID(
         blockId: Identifier,
         options: CallOptions? = nil
-    ) -> EventLoopFuture<Block?> {
+    ) async throws -> Block? {
         let request = Flow_Access_GetBlockByIDRequest.with {
             $0.id = blockId.data
         }
-        return accessAPIClient.getBlockByID(request, callOptions: options)
-            .response
-            .map { $0.hasBlock ? Block($0.block) : nil }
+        let response = try await accessAPIClient.getBlockByID(request, callOptions: options)
+        return response.hasBlock ? Block(response.block) : nil
     }
 
     /// Gets a full block by height.
     public func getBlockByHeight(
         height: UInt64,
         options: CallOptions? = nil
-    ) -> EventLoopFuture<Block?> {
+    ) async throws -> Block? {
         let request = Flow_Access_GetBlockByHeightRequest.with {
             $0.height = height
         }
-        return accessAPIClient.getBlockByHeight(request, callOptions: options)
-            .response
-            .map { $0.hasBlock ? Block($0.block) : nil }
+        let response = try await accessAPIClient.getBlockByHeight(request, callOptions: options)
+        return response.hasBlock ? Block(response.block) : nil
     }
 
     /// Gets a collection by ID.
     public func getCollection(
         collectionId: Identifier,
         options: CallOptions? = nil
-    ) -> EventLoopFuture<Collection?> {
+    ) async throws -> Collection? {
         let request = Flow_Access_GetCollectionByIDRequest.with {
             $0.id = collectionId.data
         }
-        return accessAPIClient.getCollectionByID(request, callOptions: options)
-            .response
-            .map { $0.hasCollection ? Collection($0.collection) : nil }
+        let response = try await accessAPIClient.getCollectionByID(request, callOptions: options)
+        return response.hasCollection ? Collection(response.collection) : nil
     }
 
     /// Submits a transaction to the network.
     public func sendTransaction(
         transaction: Transaction,
         options: CallOptions? = nil
-    ) -> EventLoopFuture<Identifier> {
+    ) async throws -> Identifier {
         let request = Flow_Access_SendTransactionRequest.with {
             $0.transaction = convertTransaction(transaction)
         }
-        return accessAPIClient.sendTransaction(request, callOptions: options)
-            .response
-            .map { Identifier(data: $0.id) }
+        let response = try await accessAPIClient.sendTransaction(request, callOptions: options)
+        return Identifier(data: response.id)
     }
 
     /// Gets a transaction by ID.
     public func getTransaction(
         id: Identifier,
         options: CallOptions? = nil
-    ) -> EventLoopFuture<Transaction?> {
+    ) async throws -> Transaction? {
         let request = Flow_Access_GetTransactionRequest.with {
             $0.id = id.data
         }
-        return accessAPIClient.getTransaction(request, callOptions: options)
-            .response
-            .map { $0.hasTransaction ? Transaction($0.transaction) : nil }
+        let response = try await accessAPIClient.getTransaction(request, callOptions: options)
+        return response.hasTransaction ? Transaction(response.transaction) : nil
     }
 
     /// Gets the result of a transaction.
     public func getTransactionResult(
         id: Identifier,
         options: CallOptions? = nil
-    ) -> EventLoopFuture<TransactionResult> {
+    ) async throws -> TransactionResult {
         let request = Flow_Access_GetTransactionRequest.with {
             $0.id = id.data
         }
-        return accessAPIClient.getTransactionResult(request, callOptions: options)
-            .response
-            .flatMapThrowing{ try TransactionResult($0) }
+        let response = try await accessAPIClient.getTransactionResult(request, callOptions: options)
+        return try TransactionResult(response)
     }
 
     /// Gets an account by address at the latest sealed block.
     public func getAccountAtLatestBlock(
         address: Address,
         options: CallOptions? = nil
-    ) -> EventLoopFuture<Account?> {
+    ) async throws -> Account? {
         let request = Flow_Access_GetAccountAtLatestBlockRequest.with {
             $0.address = address.data
         }
-        return accessAPIClient.getAccountAtLatestBlock(request, callOptions: options)
-            .response
-            .flatMapThrowing { $0.hasAccount ? try Account($0.account) : nil }
+        let response = try await accessAPIClient.getAccountAtLatestBlock(request, callOptions: options)
+        return response.hasAccount ? try Account(response.account) : nil
     }
 
     /// Gets an account by address at the given block height
@@ -215,14 +199,13 @@ final public class Client {
         address: Address,
         blockHeight: UInt64,
         options: CallOptions? = nil
-    ) -> EventLoopFuture<Account?> {
+    ) async throws -> Account? {
         let request = Flow_Access_GetAccountAtBlockHeightRequest.with {
             $0.address = address.data
             $0.blockHeight = blockHeight
         }
-        return accessAPIClient.getAccountAtBlockHeight(request, callOptions: options)
-            .response
-            .flatMapThrowing { $0.hasAccount ? try Account($0.account) : nil }
+        let response = try await accessAPIClient.getAccountAtBlockHeight(request, callOptions: options)
+        return response.hasAccount ? try Account(response.account) : nil
     }
 
     /// Executes a read-only Cadence script against the latest sealed execution state.
@@ -230,24 +213,15 @@ final public class Client {
         script: Data,
         arguments: [Cadence.Value] = [],
         options: CallOptions? = nil
-    ) -> EventLoopFuture<Cadence.Value> {
+    ) async throws -> Cadence.Value {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .withoutEscapingSlashes
-        let request: Flow_Access_ExecuteScriptAtLatestBlockRequest
-        do {
-            request = try Flow_Access_ExecuteScriptAtLatestBlockRequest.with {
-                $0.script = script
-                $0.arguments = try arguments.map { try encoder.encode($0) }
-            }
-        } catch {
-            let eventLoop = eventLoopGroup.next()
-            let promise = eventLoop.makePromise(of: Cadence.Value.self)
-            promise.fail(error)
-            return promise.futureResult
+        let request = try Flow_Access_ExecuteScriptAtLatestBlockRequest.with {
+            $0.script = script
+            $0.arguments = try arguments.map { try encoder.encode($0) }
         }
-        return accessAPIClient.executeScriptAtLatestBlock(request, callOptions: options)
-            .response
-            .flatMapThrowing{ try Cadence.Value.decode(data: $0.value) }
+        let response = try await accessAPIClient.executeScriptAtLatestBlock(request, callOptions: options)
+        return try Cadence.Value.decode(data: response.value)
     }
 
     /// Executes a ready-only Cadence script against the execution state at the block with the given ID.
@@ -256,25 +230,16 @@ final public class Client {
         script: Data,
         arguments: [Cadence.Value],
         options: CallOptions? = nil
-    ) -> EventLoopFuture<Cadence.Value> {
+    ) async throws -> Cadence.Value {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .withoutEscapingSlashes
-        let request: Flow_Access_ExecuteScriptAtBlockIDRequest
-        do {
-            request = try Flow_Access_ExecuteScriptAtBlockIDRequest.with {
-                $0.blockID = blockId.data
-                $0.script = script
-                $0.arguments = try arguments.map { try encoder.encode($0) }
-            }
-        } catch {
-            let eventLoop = eventLoopGroup.next()
-            let promise = eventLoop.makePromise(of: Cadence.Value.self)
-            promise.fail(error)
-            return promise.futureResult
+        let request = try Flow_Access_ExecuteScriptAtBlockIDRequest.with {
+            $0.blockID = blockId.data
+            $0.script = script
+            $0.arguments = try arguments.map { try encoder.encode($0) }
         }
-        return accessAPIClient.executeScriptAtBlockID(request, callOptions: options)
-            .response
-            .flatMapThrowing{ try Cadence.Value.decode(data: $0.value) }
+        let response = try await accessAPIClient.executeScriptAtBlockID(request, callOptions: options)
+        return try Cadence.Value.decode(data: response.value)
     }
 
     /// Executes a ready-only Cadence script against the execution state at the given block height.
@@ -283,25 +248,16 @@ final public class Client {
         script: Data,
         arguments: [Cadence.Value],
         options: CallOptions? = nil
-    ) -> EventLoopFuture<Cadence.Value> {
+    ) async throws -> Cadence.Value {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .withoutEscapingSlashes
-        let request: Flow_Access_ExecuteScriptAtBlockHeightRequest
-        do {
-            request = try Flow_Access_ExecuteScriptAtBlockHeightRequest.with {
-                $0.blockHeight = height
-                $0.script = script
-                $0.arguments = try arguments.map { try encoder.encode($0) }
-            }
-        } catch {
-            let eventLoop = eventLoopGroup.next()
-            let promise = eventLoop.makePromise(of: Cadence.Value.self)
-            promise.fail(error)
-            return promise.futureResult
+        let request = try Flow_Access_ExecuteScriptAtBlockHeightRequest.with {
+            $0.blockHeight = height
+            $0.script = script
+            $0.arguments = try arguments.map { try encoder.encode($0) }
         }
-        return accessAPIClient.executeScriptAtBlockHeight(request, callOptions: options)
-            .response
-            .flatMapThrowing{ try Cadence.Value.decode(data: $0.value) }
+        let response = try await accessAPIClient.executeScriptAtBlockHeight(request, callOptions: options)
+        return try Cadence.Value.decode(data: response.value)
     }
 
     /// Retrieves events for all sealed blocks between the start and end block heights (inclusive) with the given type.
@@ -310,15 +266,14 @@ final public class Client {
         startHeight: UInt64,
         endHeight: UInt64,
         options: CallOptions? = nil
-    ) -> EventLoopFuture<[BlockEvents]> {
+    ) async throws -> [BlockEvents] {
         let request = Flow_Access_GetEventsForHeightRangeRequest.with {
             $0.type = eventType
             $0.startHeight = startHeight
             $0.endHeight = endHeight
         }
-        return accessAPIClient.getEventsForHeightRange(request, callOptions: options)
-            .response
-            .flatMapThrowing { try $0.results.map { try BlockEvents($0) } }
+        let response = try await accessAPIClient.getEventsForHeightRange(request, callOptions: options)
+        return try response.results.map { try BlockEvents($0) }
     }
 
     /// Retrieves events with the given type from the specified block IDs.
@@ -326,49 +281,45 @@ final public class Client {
         eventType: String,
         blockIds: [Identifier],
         options: CallOptions? = nil
-    ) -> EventLoopFuture<[BlockEvents]> {
+    ) async throws -> [BlockEvents] {
         let request = Flow_Access_GetEventsForBlockIDsRequest.with {
             $0.type = eventType
             $0.blockIds = blockIds.map { $0.data }
         }
-        return accessAPIClient.getEventsForBlockIDs(request, callOptions: options)
-            .response
-            .flatMapThrowing { try $0.results.map { try BlockEvents($0) } }
+        let response = try await accessAPIClient.getEventsForBlockIDs(request, callOptions: options)
+        return try response.results.map { try BlockEvents($0) }
     }
 
     /// Retrieves the Flow network details
     public func getNetworkParameters(
         options: CallOptions? = nil
-    ) -> EventLoopFuture<String> {
+    ) async throws -> String {
         let request = Flow_Access_GetNetworkParametersRequest()
 
-        return accessAPIClient.getNetworkParameters(request, callOptions: options)
-            .response
-            .map { $0.chainID }
+        let response = try await accessAPIClient.getNetworkParameters(request, callOptions: options)
+        return response.chainID
     }
 
     /// Retrieves the latest snapshot of the protocol state in serialized form. This is used to generate a root snapshot file
     /// used by Flow nodes to bootstrap their local protocol state database.
     public func getLatestProtocolStateSnapshot(
         options: CallOptions? = nil
-    ) -> EventLoopFuture<Data> {
+    ) async throws -> Data {
         let request = Flow_Access_GetLatestProtocolStateSnapshotRequest()
-        return accessAPIClient.getLatestProtocolStateSnapshot(request, callOptions: options)
-            .response
-            .map { $0.serializedSnapshot }
+        let response = try await accessAPIClient.getLatestProtocolStateSnapshot(request, callOptions: options)
+        return response.serializedSnapshot
     }
 
     /// Gets the execution results at the block ID.
     public func getExecutionResultForBlockID(
         blockId: Identifier,
         options: CallOptions? = nil
-    ) -> EventLoopFuture<ExecutionResult?> {
+    ) async throws -> ExecutionResult? {
         let request = Flow_Access_GetExecutionResultForBlockIDRequest.with {
             $0.blockID = blockId.data
         }
-        return accessAPIClient.getExecutionResultForBlockID(request, callOptions: options)
-            .response
-            .map { $0.hasExecutionResult ? ExecutionResult($0.executionResult) : nil }
+        let response = try await accessAPIClient.getExecutionResultForBlockID(request, callOptions: options)
+        return response.hasExecutionResult ? ExecutionResult(response.executionResult) : nil
     }
 
 }

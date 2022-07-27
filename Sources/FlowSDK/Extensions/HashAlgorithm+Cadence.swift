@@ -7,9 +7,6 @@
 
 import Foundation
 import Cadence
-#if !COCOAPODS
-import Crypto
-#endif
 
 public extension HashAlgorithm {
 

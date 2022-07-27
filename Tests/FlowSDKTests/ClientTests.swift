@@ -7,72 +7,53 @@
 
 import XCTest
 import SwiftProtobuf
-import Protobuf
 import Cadence
 import NIO
 import GRPC
-import Crypto
+import BigInt
 @testable import FlowSDK
 
 final class ClientTests: XCTestCase {
 
-    private var accessAPIClient: Flow_Access_AccessAPITestClient!
+    private var group: EventLoopGroup!
+    private var provider: FlowAccessAPIProvider!
+    private var server: Server!
+    private var channel: ClientConnection!
     private var sut: Client!
 
     override func setUpWithError() throws {
-        accessAPIClient = Flow_Access_AccessAPITestClient()
-        sut = Client(
-            eventLoopGroup: MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount),
-            accessAPIClient: accessAPIClient)
+        self.group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        self.provider = FlowAccessAPIProvider()
+        self.server = try Server.insecure(group: self.group)
+            .withServiceProviders([self.provider])
+            .bind(host: "localhost", port: 0)
+            .wait()
+        self.channel = ClientConnection.insecure(group: self.group)
+            .connect(host: "localhost", port: self.server.channel.localAddress!.port!)
+        self.sut = Client(
+            eventLoopGroup: self.group,
+            accessAPIClient: Flow_Access_AccessAPIAsyncClient(channel: channel))
     }
 
     override func tearDownWithError() throws {
+        XCTAssertNoThrow(try channel.close().wait())
+        XCTAssertNoThrow(try server.initiateGracefulShutdown().wait())
+        XCTAssertNoThrow(try group.syncShutdownGracefully())
         sut = nil
-        accessAPIClient = nil
     }
 
-    func testPing() throws {
+    func testPing() async throws {
         // Arrange
-        accessAPIClient.enqueuePingResponse(Flow_Access_PingResponse())
+        provider.enqueuePingResponse(Flow_Access_PingResponse())
 
         // Act
-        try sut.ping().wait()
+        try await sut.ping()
 
         // Assert
-        XCTAssertFalse(accessAPIClient.hasPingResponsesRemaining)
+        XCTAssertFalse(provider.hasPingResponsesRemaining)
     }
 
-    func testGetLatestBlockHeader() throws {
-        // Arrange
-        let id = Data(hex: "e06759c55e126e5c96ca5427d37fca397311b09bb16fe89ccfe288f950ed2831")
-        let parentId = Data(hex: "9914002f7b3c4fb6fc053f70e499d216dbe6fc3418254b91dd45018664b66544")
-        let height: UInt64 = 68571606
-        let timestamp = Date().timeIntervalSince1970
-        let blockHeader = Flow_Entities_BlockHeader.with {
-            $0.id = id
-            $0.parentID = parentId
-            $0.height = height
-            $0.timestamp = .init(timeIntervalSince1970: timestamp)
-        }
-        let response = Flow_Access_BlockHeaderResponse.with {
-            $0.block = blockHeader
-        }
-        accessAPIClient.enqueueGetLatestBlockHeaderResponse(response)
-
-        // Act
-        let result = try sut.getLatestBlockHeader(isSealed: true).wait()
-
-        // Assert
-        XCTAssertFalse(accessAPIClient.hasGetLatestBlockHeaderResponsesRemaining)
-        let expected = BlockHeader(
-            id: Identifier(data: id),
-            parentId: Identifier(data: parentId),
-            height: height,
-            timestamp: Date(timeIntervalSince1970: timestamp))
-        XCTAssertEqual(result, expected)
-    }
-
-    func testGetBlockHeaderById() throws {
+    func testGetLatestBlockHeader() async throws {
         // Arrange
         let id = Data(hex: "e06759c55e126e5c96ca5427d37fca397311b09bb16fe89ccfe288f950ed2831")
         let parentId = Data(hex: "9914002f7b3c4fb6fc053f70e499d216dbe6fc3418254b91dd45018664b66544")
@@ -87,13 +68,13 @@ final class ClientTests: XCTestCase {
         let response = Flow_Access_BlockHeaderResponse.with {
             $0.block = blockHeader
         }
-        accessAPIClient.enqueueGetBlockHeaderByIDResponse(response)
+        provider.enqueueGetLatestBlockHeaderResponse(response)
 
         // Act
-        let result = try sut.getBlockHeaderById(blockId: Identifier(data: id)).wait()
+        let result = try await sut.getLatestBlockHeader(isSealed: true)
 
         // Assert
-        XCTAssertFalse(accessAPIClient.hasGetBlockHeaderByIDResponsesRemaining)
+        XCTAssertFalse(provider.hasGetLatestBlockHeaderResponsesRemaining)
         let expected = BlockHeader(
             id: Identifier(data: id),
             parentId: Identifier(data: parentId),
@@ -102,7 +83,7 @@ final class ClientTests: XCTestCase {
         XCTAssertEqual(result, expected)
     }
 
-    func testGetBlockHeaderByHeight() throws {
+    func testGetBlockHeaderById() async throws {
         // Arrange
         let id = Data(hex: "e06759c55e126e5c96ca5427d37fca397311b09bb16fe89ccfe288f950ed2831")
         let parentId = Data(hex: "9914002f7b3c4fb6fc053f70e499d216dbe6fc3418254b91dd45018664b66544")
@@ -117,13 +98,13 @@ final class ClientTests: XCTestCase {
         let response = Flow_Access_BlockHeaderResponse.with {
             $0.block = blockHeader
         }
-        accessAPIClient.enqueueGetBlockHeaderByHeightResponse(response)
+        provider.enqueueGetBlockHeaderByIDResponse(response)
 
         // Act
-        let result = try sut.getBlockHeaderByHeight(height: height).wait()
+        let result = try await sut.getBlockHeaderById(blockId: Identifier(data: id))
 
         // Assert
-        XCTAssertFalse(accessAPIClient.hasGetBlockHeaderByHeightResponsesRemaining)
+        XCTAssertFalse(provider.hasGetBlockHeaderByIDResponsesRemaining)
         let expected = BlockHeader(
             id: Identifier(data: id),
             parentId: Identifier(data: parentId),
@@ -132,7 +113,37 @@ final class ClientTests: XCTestCase {
         XCTAssertEqual(result, expected)
     }
 
-    func testGetLatestBlock() throws {
+    func testGetBlockHeaderByHeight() async throws {
+        // Arrange
+        let id = Data(hex: "e06759c55e126e5c96ca5427d37fca397311b09bb16fe89ccfe288f950ed2831")
+        let parentId = Data(hex: "9914002f7b3c4fb6fc053f70e499d216dbe6fc3418254b91dd45018664b66544")
+        let height: UInt64 = 68571606
+        let timestamp = Date().timeIntervalSince1970
+        let blockHeader = Flow_Entities_BlockHeader.with {
+            $0.id = id
+            $0.parentID = parentId
+            $0.height = height
+            $0.timestamp = .init(timeIntervalSince1970: timestamp)
+        }
+        let response = Flow_Access_BlockHeaderResponse.with {
+            $0.block = blockHeader
+        }
+        provider.enqueueGetBlockHeaderByHeightResponse(response)
+
+        // Act
+        let result = try await sut.getBlockHeaderByHeight(height: height)
+
+        // Assert
+        XCTAssertFalse(provider.hasGetBlockHeaderByHeightResponsesRemaining)
+        let expected = BlockHeader(
+            id: Identifier(data: id),
+            parentId: Identifier(data: parentId),
+            height: height,
+            timestamp: Date(timeIntervalSince1970: timestamp))
+        XCTAssertEqual(result, expected)
+    }
+
+    func testGetLatestBlock() async throws {
         // Arrange
         let id = Data(hex: "c5110d10e126e3b1217f4de2903ffbb9a7791c8ad29d44ebb68f713afb084530")
         let parentId = Data(hex: "432ff858cb053b0db1252e0c0b50ac4d4ba9fbff5617fcea8bee64bf086406f9")
@@ -158,13 +169,13 @@ final class ClientTests: XCTestCase {
         let response = Flow_Access_BlockResponse.with {
             $0.block = block
         }
-        accessAPIClient.enqueueGetLatestBlockResponse(response)
+        provider.enqueueGetLatestBlockResponse(response)
 
         // Act
-        let result = try sut.getLatestBlock(isSealed: true).wait()
+        let result = try await sut.getLatestBlock(isSealed: true)
 
         // Assert
-        XCTAssertFalse(accessAPIClient.hasGetLatestBlockResponsesRemaining)
+        XCTAssertFalse(provider.hasGetLatestBlockResponsesRemaining)
         let expected = Block(
             blockHeader: BlockHeader(
                 id: Identifier(data: id),
@@ -184,7 +195,7 @@ final class ClientTests: XCTestCase {
         XCTAssertEqual(result, expected)
     }
 
-    func testGetBlockByID() throws {
+    func testGetBlockByID() async throws {
         // Arrange
         let id = Data(hex: "c5110d10e126e3b1217f4de2903ffbb9a7791c8ad29d44ebb68f713afb084530")
         let parentId = Data(hex: "432ff858cb053b0db1252e0c0b50ac4d4ba9fbff5617fcea8bee64bf086406f9")
@@ -210,13 +221,13 @@ final class ClientTests: XCTestCase {
         let response = Flow_Access_BlockResponse.with {
             $0.block = block
         }
-        accessAPIClient.enqueueGetBlockByIDResponse(response)
+        provider.enqueueGetBlockByIDResponse(response)
 
         // Act
-        let result = try sut.getBlockByID(blockId: Identifier(data: id)).wait()
+        let result = try await sut.getBlockByID(blockId: Identifier(data: id))
 
         // Assert
-        XCTAssertFalse(accessAPIClient.hasGetBlockByIDResponsesRemaining)
+        XCTAssertFalse(provider.hasGetBlockByIDResponsesRemaining)
         let expected = Block(
             blockHeader: BlockHeader(
                 id: Identifier(data: id),
@@ -236,7 +247,7 @@ final class ClientTests: XCTestCase {
         XCTAssertEqual(result, expected)
     }
 
-    func testGetBlockByHeight() throws {
+    func testGetBlockByHeight() async throws {
         // Arrange
         let id = Data(hex: "c5110d10e126e3b1217f4de2903ffbb9a7791c8ad29d44ebb68f713afb084530")
         let parentId = Data(hex: "432ff858cb053b0db1252e0c0b50ac4d4ba9fbff5617fcea8bee64bf086406f9")
@@ -262,13 +273,13 @@ final class ClientTests: XCTestCase {
         let response = Flow_Access_BlockResponse.with {
             $0.block = block
         }
-        accessAPIClient.enqueueGetBlockByHeightResponse(response)
+        provider.enqueueGetBlockByHeightResponse(response)
 
         // Act
-        let result = try sut.getBlockByHeight(height: height).wait()
+        let result = try await sut.getBlockByHeight(height: height)
 
         // Assert
-        XCTAssertFalse(accessAPIClient.hasGetBlockByHeightResponsesRemaining)
+        XCTAssertFalse(provider.hasGetBlockByHeightResponsesRemaining)
         let expected = Block(
             blockHeader: BlockHeader(
                 id: Identifier(data: id),
@@ -288,7 +299,7 @@ final class ClientTests: XCTestCase {
         XCTAssertEqual(result, expected)
     }
 
-    func testGetCollection() throws {
+    func testGetCollection() async throws {
         // Arrange
         let collectionId = Data(hex: "9d850ea09245588431a0ab29c890c6046523818024c614238a89e74d60c5cdfc")
         let transactionId = Data(hex: "8d57be3d506586eec547179b41207ad7b3df2b02775682969ffd1aa233a80c37")
@@ -299,18 +310,18 @@ final class ClientTests: XCTestCase {
         let response = Flow_Access_CollectionResponse.with {
             $0.collection = collection
         }
-        accessAPIClient.enqueueGetCollectionByIDResponse(response)
+        provider.enqueueGetCollectionByIDResponse(response)
 
         // Act
-        let result = try sut.getCollection(collectionId: Identifier(data: collectionId)).wait()
+        let result = try await sut.getCollection(collectionId: Identifier(data: collectionId))
 
         // Assert
-        XCTAssertFalse(accessAPIClient.hasGetCollectionByIDResponsesRemaining)
+        XCTAssertFalse(provider.hasGetCollectionByIDResponsesRemaining)
         let expected = Collection(transactionIds: transactionIds.map { Identifier(data: $0) })
         XCTAssertEqual(result, expected)
     }
 
-    func testSendTransaction() throws {
+    func testSendTransaction() async throws {
         // Arrange
         let script = Data()
         let referenceBlockId = Identifier(hexString: "e0521151ba45f98ff91b6ccabdddd73a68fd8f72c75beb80e70e99304397aee5")
@@ -328,18 +339,17 @@ final class ClientTests: XCTestCase {
         let response = Flow_Access_SendTransactionResponse.with {
             $0.id = txId.data
         }
-        accessAPIClient.enqueueSendTransactionResponse(response)
+        provider.enqueueSendTransactionResponse(response)
 
         // Act
-        let result = try sut.sendTransaction(transaction: transaction)
-            .wait()
+        let result = try await sut.sendTransaction(transaction: transaction)
 
         // Assert
-        XCTAssertFalse(accessAPIClient.hasSendTransactionResponsesRemaining)
+        XCTAssertFalse(provider.hasSendTransactionResponsesRemaining)
         XCTAssertEqual(result, txId)
     }
 
-    func testGetTransaction() throws {
+    func testGetTransaction() async throws {
         // Arrange
         let id = Identifier(hexString: "eae8599cdde95a4dabe0595f2a77b607769116a18b107b97dbf78c9397891743")
         let script = Data(hex: "696d706f7274204e6f6e46756e6769626c65546f6b656e2066726f6d203078363331653838616537663164376332300a20202020696d706f7274204d6574616461746156696577732066726f6d203078363331653838616537663164376332300a20202020696d706f7274204d464c506c617965722066726f6d203078363833353634653436393737373838610a20202020696d706f7274204d464c41646d696e2066726f6d203078363833353634653436393737373838610a0a202020202f2a2a0a202020202020202054686973207478206d696e74732061206e657720706c61796572204e465420676976656e2061206365727461696e206e756d626572206f6620706172616d65746572732c0a2020202020202020616e64206465706f73697420697420696e2074686520726563656976657220636f6c6c656374696f6e2e0a202020202a2a2f0a0a202020207472616e73616374696f6e280a202020202020202069643a2055496e7436342c0a2020202020202020736561736f6e3a2055496e7433322c0a2020202020202020666f6c6465724349443a20537472696e672c0a20202020202020206e616d653a20537472696e672c0a20202020202020206e6174696f6e616c69746965733a205b537472696e675d2c0a2020202020202020706f736974696f6e733a205b537472696e675d2c0a2020202020202020707265666572726564466f6f743a20537472696e672c0a202020202020202061676541744d696e743a2055496e7433322c0a20202020202020206865696768743a2055496e7433322c0a20202020202020206f766572616c6c3a2055496e7433322c0a2020202020202020706163653a2055496e7433322c0a202020202020202073686f6f74696e673a2055496e7433322c0a202020202020202070617373696e673a2055496e7433322c0a202020202020202064726962626c696e673a2055496e7433322c0a2020202020202020646566656e73653a2055496e7433322c0a2020202020202020706879736963616c3a2055496e7433322c0a2020202020202020676f616c6b656570696e673a2055496e7433322c0a2020202020202020706f74656e7469616c3a20537472696e672c0a20202020202020206c6f6e6765766974793a20537472696e672c0a2020202020202020726573697374616e63653a2055496e7433322c0a20202020202020207265636569766572416464726573733a20416464726573730a2020202029207b0a20202020202020206c657420706c6179657241646d696e50726f78795265663a20264d464c41646d696e2e41646d696e50726f78790a20202020202020206c65742072656365697665725265663a20267b4e6f6e46756e6769626c65546f6b656e2e436f6c6c656374696f6e5075626c69637d0a0a20202020202020207072657061726528616363743a20417574684163636f756e7429207b0a20202020202020202020202073656c662e706c6179657241646d696e50726f7879526566203d20616363742e626f72726f773c264d464c41646d696e2e41646d696e50726f78793e2866726f6d3a204d464c41646d696e2e41646d696e50726f787953746f726167655061746829203f3f2070616e69632822436f756c64206e6f7420626f72726f772061646d696e2070726f7879207265666572656e636522290a2020202020202020202020206c657420706c61796572436f6c6c656374696f6e436170203d206765744163636f756e7428726563656976657241646472657373292e6765744361706162696c6974793c267b4e6f6e46756e6769626c65546f6b656e2e436f6c6c656374696f6e5075626c69637d3e284d464c506c617965722e436f6c6c656374696f6e5075626c696350617468290a20202020202020202020202073656c662e7265636569766572526566203d20706c61796572436f6c6c656374696f6e4361702e626f72726f772829203f3f2070616e69632822436f756c64206e6f7420626f72726f77207265636569766572207265666572656e636522290a20202020202020207d0a0a202020202020202065786563757465207b0a2020202020202020202020206c657420706c6179657241646d696e436c61696d436170203d2073656c662e706c6179657241646d696e50726f78795265662e676574436c61696d4361706162696c697479286e616d653a2022506c6179657241646d696e436c61696d2229203f3f2070616e69632822506c6179657241646d696e436c61696d206361706162696c697479206e6f7420666f756e6422290a2020202020202020202020206c657420706c6179657241646d696e436c61696d526566203d20706c6179657241646d696e436c61696d4361702e626f72726f773c267b4d464c506c617965722e506c6179657241646d696e436c61696d7d3e2829203f3f2070616e69632822436f756c64206e6f7420626f72726f7720506c6179657241646d696e436c61696d22290a0a2020202020202020202020206c6574206d657461646174613a207b537472696e673a20416e795374727563747d203d207b7d0a2020202020202020202020206d657461646174612e696e73657274286b65793a20226e616d65222c206e616d65290a2020202020202020202020206d657461646174612e696e73657274286b65793a20226f766572616c6c222c206f766572616c6c290a2020202020202020202020206d657461646174612e696e73657274286b65793a20226e6174696f6e616c6974696573222c206e6174696f6e616c6974696573290a2020202020202020202020206d657461646174612e696e73657274286b65793a2022706f736974696f6e73222c20706f736974696f6e73290a2020202020202020202020206d657461646174612e696e73657274286b65793a2022707265666572726564466f6f74222c20707265666572726564466f6f74290a2020202020202020202020206d657461646174612e696e73657274286b65793a202261676541744d696e74222c2061676541744d696e74290a2020202020202020202020206d657461646174612e696e73657274286b65793a2022686569676874222c20686569676874290a2020202020202020202020206d657461646174612e696e73657274286b65793a202270616365222c2070616365290a2020202020202020202020206d657461646174612e696e73657274286b65793a202273686f6f74696e67222c2073686f6f74696e67290a2020202020202020202020206d657461646174612e696e73657274286b65793a202270617373696e67222c2070617373696e67290a2020202020202020202020206d657461646174612e696e73657274286b65793a202264726962626c696e67222c2064726962626c696e67290a2020202020202020202020206d657461646174612e696e73657274286b65793a2022646566656e7365222c20646566656e7365290a2020202020202020202020206d657461646174612e696e73657274286b65793a2022706879736963616c222c20706879736963616c290a2020202020202020202020206d657461646174612e696e73657274286b65793a2022676f616c6b656570696e67222c20676f616c6b656570696e67290a2020202020202020202020206d657461646174612e696e73657274286b65793a2022706f74656e7469616c222c20706f74656e7469616c290a2020202020202020202020206d657461646174612e696e73657274286b65793a20226c6f6e676576697479222c206c6f6e676576697479290a2020202020202020202020206d657461646174612e696e73657274286b65793a2022726573697374616e6365222c20726573697374616e6365290a0a2020202020202020202020206c657420696d616765203d204d6574616461746156696577732e4950465346696c65286369643a20666f6c6465724349442c20706174683a206e696c290a2020202020202020202020206c657420706c617965724e4654203c2d20706c6179657241646d696e436c61696d5265662e6d696e74506c61796572280a2020202020202020202020202020202069643a2069642c0a202020202020202020202020202020206d657461646174613a206d657461646174612c0a20202020202020202020202020202020736561736f6e3a20736561736f6e2c0a20202020202020202020202020202020696d6167653a20696d6167652c0a202020202020202020202020290a20202020202020202020202073656c662e72656365697665725265662e6465706f73697428746f6b656e3a203c2d20706c617965724e4654290a20202020202020207d0a0a2020202020202020706f7374207b0a2020202020202020202020204d464c506c617965722e676574506c61796572446174612869643a2069642920213d206e696c3a2022436f756c64206e6f742066696e6420706c61796572206d6574616461746120696e20706f7374220a20202020202020202020202073656c662e72656365697665725265662e67657449447328292e636f6e7461696e73286964293a2022436f756c64206e6f742066696e6420706c6179657220696e20706f7374220a20202020202020207d0a202020207d")
@@ -408,13 +418,13 @@ final class ClientTests: XCTestCase {
         let response = Flow_Access_TransactionResponse.with {
             $0.transaction = transaction
         }
-        accessAPIClient.enqueueGetTransactionResponse(response)
+        provider.enqueueGetTransactionResponse(response)
 
         // Act
-        let result = try sut.getTransaction(id: id).wait()
+        let result = try await sut.getTransaction(id: id)
 
         // Assert
-        XCTAssertFalse(accessAPIClient.hasGetTransactionResponsesRemaining)
+        XCTAssertFalse(provider.hasGetTransactionResponsesRemaining)
         let expected = try Transaction(
             script: script,
             arguments: [
@@ -470,7 +480,7 @@ final class ClientTests: XCTestCase {
         XCTAssertEqual(result, expected)
     }
 
-    func testGetTransactionResult() throws {
+    func testGetTransactionResult() async throws {
         // Arrange
         let id = Identifier(hexString: "6a2b4c6b3597a508dceb6b2814fb7420e2d911a0371de048a02e0f440825684a")
         let blockId = Data(hex: "1ab89cd3b7d87015c9d5ba2aa47bd96116646f4e6817a4824ae54073c4d18c5d")
@@ -518,13 +528,13 @@ final class ClientTests: XCTestCase {
             $0.blockID = blockId
             $0.transactionID = id.data
         }
-        accessAPIClient.enqueueGetTransactionResultResponse(response)
+        provider.enqueueGetTransactionResultResponse(response)
 
         // Act
-        let result = try sut.getTransactionResult(id: id).wait()
+        let result = try await sut.getTransactionResult(id: id)
 
         // Assert
-        XCTAssertFalse(accessAPIClient.hasGetTransactionResultResponsesRemaining)
+        XCTAssertFalse(provider.hasGetTransactionResultResponsesRemaining)
         let expected = TransactionResult(
             status: .sealed,
             errorMessage: nil,
@@ -629,7 +639,7 @@ final class ClientTests: XCTestCase {
         XCTAssertEqual(result, expected)
     }
 
-    func testGetAccountAtLatestBlock() throws {
+    func testGetAccountAtLatestBlock() async throws {
         // Arrange
         let address = Address(hexString: "0xb83579e611780dd1")
         let balance: UInt64 = 97170635
@@ -707,15 +717,14 @@ final class ClientTests: XCTestCase {
                 $0.contracts = contracts
             }
         }
-        accessAPIClient.enqueueGetAccountAtLatestBlockResponse(response)
+        provider.enqueueGetAccountAtLatestBlockResponse(response)
 
         // Act
-        let result = try sut.getAccountAtLatestBlock(
+        let result = try await sut.getAccountAtLatestBlock(
             address: address)
-            .wait()
 
         // Assert
-        XCTAssertFalse(accessAPIClient.hasGetAccountAtLatestBlockResponsesRemaining)
+        XCTAssertFalse(provider.hasGetAccountAtLatestBlockResponsesRemaining)
         let expected = Account(
             address: address,
             balance: balance,
@@ -777,7 +786,7 @@ final class ClientTests: XCTestCase {
         XCTAssertEqual(result, expected)
     }
 
-    func testGetAccountAtBlockHeight() throws {
+    func testGetAccountAtBlockHeight() async throws {
         // Arrange
         let address = Address(hexString: "0x8f06737debc97668")
         let blockHeight: UInt64 = 69788156
@@ -798,16 +807,15 @@ final class ClientTests: XCTestCase {
                 $0.contracts = ["FlowToken": try Utils.getTestData(name: "FlowToken.cdc")]
             }
         }
-        accessAPIClient.enqueueGetAccountAtBlockHeightResponse(response)
+        provider.enqueueGetAccountAtBlockHeightResponse(response)
 
         // Act
-        let result = try sut.getAccountAtBlockHeight(
+        let result = try await sut.getAccountAtBlockHeight(
             address: address,
             blockHeight: blockHeight)
-            .wait()
 
         // Assert
-        XCTAssertFalse(accessAPIClient.hasGetAccountAtBlockHeightResponsesRemaining)
+        XCTAssertFalse(provider.hasGetAccountAtBlockHeightResponsesRemaining)
         let expected = Account(
             address: address,
             balance: balance,
@@ -827,28 +835,27 @@ final class ClientTests: XCTestCase {
         XCTAssertEqual(result, expected)
     }
 
-    func testExecuteScriptAtLatestBlock() throws {
+    func testExecuteScriptAtLatestBlock() async throws {
         // Arrange
         let arguments: [Cadence.Value] = [.address(Address(hexString: "0x76d6c5f3189b2b3e"))]
         let value = "{\"type\":\"UFix64\",\"value\":\"999.71164129\"}\n"
         let response = Flow_Access_ExecuteScriptResponse.with {
             $0.value = value.data(using: .utf8)!
         }
-        accessAPIClient.enqueueExecuteScriptAtLatestBlockResponse(response)
+        provider.enqueueExecuteScriptAtLatestBlockResponse(response)
 
         // Act
-        let result = try sut.executeScriptAtLatestBlock(
+        let result = try await sut.executeScriptAtLatestBlock(
             script: try Utils.getTestData(name: "getFlowBalance.cdc"),
             arguments: arguments)
-            .wait()
 
         // Assert
-        XCTAssertFalse(accessAPIClient.hasExecuteScriptAtLatestBlockResponsesRemaining)
+        XCTAssertFalse(provider.hasExecuteScriptAtLatestBlockResponsesRemaining)
         let expected = Cadence.Value.ufix64(Decimal(string: "999.71164129")!)
         XCTAssertEqual(result, expected)
     }
 
-    func testExecuteScriptAtBlockID() throws {
+    func testExecuteScriptAtBlockID() async throws {
         // Arrange
         let id = Identifier(hexString: "243263c9db22d59b4d1e835e9b38fc8eca89d47cebf1e06c885fab4c28a72f9e")
         let arguments: [Cadence.Value] = [.address(Address(hexString: "0x76d6c5f3189b2b3e"))]
@@ -856,22 +863,21 @@ final class ClientTests: XCTestCase {
         let response = Flow_Access_ExecuteScriptResponse.with {
             $0.value = value.data(using: .utf8)!
         }
-        accessAPIClient.enqueueExecuteScriptAtBlockIDResponse(response)
+        provider.enqueueExecuteScriptAtBlockIDResponse(response)
 
         // Act
-        let result = try sut.executeScriptAtBlockID(
+        let result = try await sut.executeScriptAtBlockID(
             blockId: id,
             script: try Utils.getTestData(name: "getFlowBalance.cdc"),
             arguments: arguments)
-            .wait()
 
         // Assert
-        XCTAssertFalse(accessAPIClient.hasExecuteScriptAtBlockIDResponsesRemaining)
+        XCTAssertFalse(provider.hasExecuteScriptAtBlockIDResponsesRemaining)
         let expected = Cadence.Value.ufix64(Decimal(string: "999.71164129")!)
         XCTAssertEqual(result, expected)
     }
 
-    func testExecuteScriptAtBlockHeight() throws {
+    func testExecuteScriptAtBlockHeight() async throws {
         // Arrange
         let height: UInt64 = 5566
         let arguments: [Cadence.Value] = [.address(Address(hexString: "0x76d6c5f3189b2b3e"))]
@@ -879,22 +885,21 @@ final class ClientTests: XCTestCase {
         let response = Flow_Access_ExecuteScriptResponse.with {
             $0.value = value.data(using: .utf8)!
         }
-        accessAPIClient.enqueueExecuteScriptAtBlockHeightResponse(response)
+        provider.enqueueExecuteScriptAtBlockHeightResponse(response)
 
         // Act
-        let result = try sut.executeScriptAtBlockHeight(
+        let result = try await sut.executeScriptAtBlockHeight(
             height: height,
             script: try Utils.getTestData(name: "getFlowBalance.cdc"),
             arguments: arguments)
-            .wait()
 
         // Assert
-        XCTAssertFalse(accessAPIClient.hasExecuteScriptAtBlockHeightResponsesRemaining)
+        XCTAssertFalse(provider.hasExecuteScriptAtBlockHeightResponsesRemaining)
         let expected = Cadence.Value.ufix64(Decimal(string: "999.71164129")!)
         XCTAssertEqual(result, expected)
     }
 
-    func testGetEventsForHeightRange() throws {
+    func testGetEventsForHeightRange() async throws {
         // Arrange
         let eventType = "A.7e60df042a9c0868.FlowToken.TokensWithdrawn"
         let startHeight: UInt64 = 69648586
@@ -946,17 +951,16 @@ final class ClientTests: XCTestCase {
                 }
             ]
         }
-        accessAPIClient.enqueueGetEventsForHeightRangeResponse(response)
+        provider.enqueueGetEventsForHeightRangeResponse(response)
 
         // Act
-        let result = try sut.getEventsForHeightRange(
+        let result = try await sut.getEventsForHeightRange(
             eventType: eventType,
             startHeight: startHeight,
             endHeight: endHeight)
-            .wait()
 
         // Assert
-        XCTAssertFalse(accessAPIClient.hasGetEventsForHeightRangeResponsesRemaining)
+        XCTAssertFalse(provider.hasGetEventsForHeightRangeResponsesRemaining)
         let expected: [BlockEvents] = [
             .init(
                 blockId: Identifier(data: result1blockId),
@@ -990,7 +994,7 @@ final class ClientTests: XCTestCase {
         XCTAssertEqual(result, expected)
     }
 
-    func testGetEventsForBlockIDs() throws {
+    func testGetEventsForBlockIDs() async throws {
         // Arrange
         let eventType = "A.7e60df042a9c0868.FlowToken.TokensWithdrawn"
         let id = Data(hex: "e06759c55e126e5c96ca5427d37fca397311b09bb16fe89ccfe288f950ed2831")
@@ -1030,16 +1034,15 @@ final class ClientTests: XCTestCase {
                 }
             ]
         }
-        accessAPIClient.enqueueGetEventsForBlockIDsResponse(response)
+        provider.enqueueGetEventsForBlockIDsResponse(response)
 
         // Act
-        let result = try sut.getEventsForBlockIDs(
+        let result = try await sut.getEventsForBlockIDs(
             eventType: eventType,
             blockIds: [Identifier(data: id), Identifier(data: id2)])
-            .wait()
 
         // Assert
-        XCTAssertFalse(accessAPIClient.hasGetEventsForBlockIDsResponsesRemaining)
+        XCTAssertFalse(provider.hasGetEventsForBlockIDsResponsesRemaining)
         let expected: [BlockEvents] = [
             .init(
                 blockId: Identifier(data: id),
@@ -1068,23 +1071,23 @@ final class ClientTests: XCTestCase {
         XCTAssertEqual(result, expected)
     }
 
-    func testGetLatestProtocolStateSnapshot() throws {
+    func testGetLatestProtocolStateSnapshot() async throws {
         // Arrange
         let protocolState = try Utils.getHexData(name: "protocolState.hex")
         let response = Flow_Access_ProtocolStateSnapshotResponse.with {
             $0.serializedSnapshot = protocolState
         }
-        accessAPIClient.enqueueGetLatestProtocolStateSnapshotResponse(response)
+        provider.enqueueGetLatestProtocolStateSnapshotResponse(response)
 
         // Act
-        let result = try sut.getLatestProtocolStateSnapshot().wait()
+        let result = try await sut.getLatestProtocolStateSnapshot()
 
         // Assert
-        XCTAssertFalse(accessAPIClient.hasGetLatestProtocolStateSnapshotResponsesRemaining)
+        XCTAssertFalse(provider.hasGetLatestProtocolStateSnapshotResponsesRemaining)
         XCTAssertEqual(result, protocolState)
     }
 
-    func testGetExecutionResultForBlockID() throws {
+    func testGetExecutionResultForBlockID() async throws {
         // Arrange
         let id = Data(hex: "f02f42084d41186c3de1f0badbfbde602ee91f0f1c4224250d58de32cd561fb8")
         let previousResultId = Data(hex: "e8426df245554bcfe890176531406786739e414abcd2ebc926900743997f1e77")
@@ -1107,13 +1110,13 @@ final class ClientTests: XCTestCase {
                 ]
             }
         }
-        accessAPIClient.enqueueGetExecutionResultForBlockIDResponse(response)
+        provider.enqueueGetExecutionResultForBlockIDResponse(response)
 
         // Act
-        let result = try sut.getExecutionResultForBlockID(blockId: Identifier(data: id)).wait()
+        let result = try await sut.getExecutionResultForBlockID(blockId: Identifier(data: id))
 
         // Assert
-        XCTAssertFalse(accessAPIClient.hasGetExecutionResultForBlockIDResponsesRemaining)
+        XCTAssertFalse(provider.hasGetExecutionResultForBlockIDResponsesRemaining)
         let expected = ExecutionResult(
             previousResultId: Identifier(data: previousResultId),
             blockId: Identifier(data: id),

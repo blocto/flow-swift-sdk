@@ -16,7 +16,7 @@ let package = Package(
             targets: ["FlowSDK"])
     ],
     dependencies: [
-        .package(url: "https://github.com/grpc/grpc-swift.git", from: "1.0.0"),
+        .package(url: "https://github.com/grpc/grpc-swift.git", from: "1.8.2"),
         .package(url: "https://github.com/attaswift/BigInt.git", from: "5.2.0"),
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", .upToNextMajor(from: "1.5.1")),
         .package(url: "https://github.com/portto/secp256k1.swift", from: "0.7.4")
@@ -30,35 +30,18 @@ let package = Package(
             ]
         ),
         .target(
-            name: "Crypto",
-            dependencies: [
-                "CryptoSwift",
-                .product(name: "secp256k1Swift", package: "secp256k1.swift")
-            ]
-        ),
-        .target(
-            name: "Protobuf",
-            dependencies: [
-                .product(name: "GRPC", package: "grpc-swift")
-            ]
-        ),
-        .target(
             name: "FlowSDK",
             dependencies: [
                 "BigInt",
                 "CryptoSwift",
-                "Protobuf",
                 "Cadence",
-                "Crypto"
+                .product(name: "GRPC", package: "grpc-swift"),
+                .product(name: "secp256k1Swift", package: "secp256k1.swift")
             ]
         ),
         .testTarget(
             name: "CadenceTests",
             dependencies: ["Cadence"]
-        ),
-        .testTarget(
-            name: "CryptoTests",
-            dependencies: ["Crypto"]
         ),
         .testTarget(
             name: "FlowSDKTests",

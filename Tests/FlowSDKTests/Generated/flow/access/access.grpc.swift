@@ -20,629 +20,1070 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+import FlowSDK
 import GRPC
 import NIO
-import Protobuf
+import NIOConcurrencyHelpers
 import SwiftProtobuf
 
 
-internal final class Flow_Access_AccessAPITestClient: Flow_Access_AccessAPIClientProtocol {
-  private let fakeChannel: FakeChannel
-  internal var defaultCallOptions: CallOptions
-  internal var interceptors: Flow_Access_AccessAPIClientInterceptorFactoryProtocol?
+/// AccessAPI is the public-facing API provided by access nodes.
+///
+/// To build a server, implement a class that conforms to this protocol.
+internal protocol Flow_Access_AccessAPIProvider: CallHandlerProvider {
+  var interceptors: Flow_Access_AccessAPIServerInterceptorFactoryProtocol? { get }
 
-  internal var channel: GRPCChannel {
-    return self.fakeChannel
-  }
+  /// Ping is used to check if the access node is alive and healthy.
+  func ping(request: Flow_Access_PingRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_PingResponse>
 
-  internal init(
-    fakeChannel: FakeChannel = FakeChannel(),
-    defaultCallOptions callOptions: CallOptions = CallOptions(),
-    interceptors: Flow_Access_AccessAPIClientInterceptorFactoryProtocol? = nil
-  ) {
-    self.fakeChannel = fakeChannel
-    self.defaultCallOptions = callOptions
-    self.interceptors = interceptors
-  }
+  /// GetLatestBlockHeader gets the latest sealed or unsealed block header.
+  func getLatestBlockHeader(request: Flow_Access_GetLatestBlockHeaderRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_BlockHeaderResponse>
 
-  /// Make a unary response for the Ping RPC. This must be called
-  /// before calling 'ping'. See also 'FakeUnaryResponse'.
+  /// GetBlockHeaderByID gets a block header by ID.
+  func getBlockHeaderByID(request: Flow_Access_GetBlockHeaderByIDRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_BlockHeaderResponse>
+
+  /// GetBlockHeaderByHeight gets a block header by height.
+  func getBlockHeaderByHeight(request: Flow_Access_GetBlockHeaderByHeightRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_BlockHeaderResponse>
+
+  /// GetLatestBlock gets the full payload of the latest sealed or unsealed
+  /// block.
+  func getLatestBlock(request: Flow_Access_GetLatestBlockRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_BlockResponse>
+
+  /// GetBlockByID gets a full block by ID.
+  func getBlockByID(request: Flow_Access_GetBlockByIDRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_BlockResponse>
+
+  /// GetBlockByHeight gets a full block by height.
+  func getBlockByHeight(request: Flow_Access_GetBlockByHeightRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_BlockResponse>
+
+  /// GetCollectionByID gets a collection by ID.
+  func getCollectionByID(request: Flow_Access_GetCollectionByIDRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_CollectionResponse>
+
+  /// SendTransaction submits a transaction to the network.
+  func sendTransaction(request: Flow_Access_SendTransactionRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_SendTransactionResponse>
+
+  /// GetTransaction gets a transaction by ID.
+  func getTransaction(request: Flow_Access_GetTransactionRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_TransactionResponse>
+
+  /// GetTransactionResult gets the result of a transaction.
+  func getTransactionResult(request: Flow_Access_GetTransactionRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_TransactionResultResponse>
+
+  /// GetTransactionResultByIndex gets the result of a transaction at a specified
+  /// block and index
+  func getTransactionResultByIndex(request: Flow_Access_GetTransactionByIndexRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_TransactionResultResponse>
+
+  /// GetTransactionResultsByBlockID gets all the transaction results for a
+  /// specified block
+  func getTransactionResultsByBlockID(request: Flow_Access_GetTransactionsByBlockIDRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_TransactionResultsResponse>
+
+  /// GetTransactionsByBlockID gets all the transactions for a specified block
+  func getTransactionsByBlockID(request: Flow_Access_GetTransactionsByBlockIDRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_TransactionsResponse>
+
+  /// GetAccount is an alias for GetAccountAtLatestBlock.
   ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makePingResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_PingRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_PingRequest, Flow_Access_PingResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/Ping", requestHandler: requestHandler)
-  }
-
-  internal func enqueuePingResponse(
-    _ response: Flow_Access_PingResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_PingRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makePingResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'Ping'
-  internal var hasPingResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/Ping")
-  }
-
-  /// Make a unary response for the GetLatestBlockHeader RPC. This must be called
-  /// before calling 'getLatestBlockHeader'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeGetLatestBlockHeaderResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetLatestBlockHeaderRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_GetLatestBlockHeaderRequest, Flow_Access_BlockHeaderResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/GetLatestBlockHeader", requestHandler: requestHandler)
-  }
-
-  internal func enqueueGetLatestBlockHeaderResponse(
-    _ response: Flow_Access_BlockHeaderResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetLatestBlockHeaderRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeGetLatestBlockHeaderResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'GetLatestBlockHeader'
-  internal var hasGetLatestBlockHeaderResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/GetLatestBlockHeader")
-  }
-
-  /// Make a unary response for the GetBlockHeaderByID RPC. This must be called
-  /// before calling 'getBlockHeaderByID'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeGetBlockHeaderByIDResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetBlockHeaderByIDRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_GetBlockHeaderByIDRequest, Flow_Access_BlockHeaderResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/GetBlockHeaderByID", requestHandler: requestHandler)
-  }
-
-  internal func enqueueGetBlockHeaderByIDResponse(
-    _ response: Flow_Access_BlockHeaderResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetBlockHeaderByIDRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeGetBlockHeaderByIDResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'GetBlockHeaderByID'
-  internal var hasGetBlockHeaderByIDResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/GetBlockHeaderByID")
-  }
-
-  /// Make a unary response for the GetBlockHeaderByHeight RPC. This must be called
-  /// before calling 'getBlockHeaderByHeight'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeGetBlockHeaderByHeightResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetBlockHeaderByHeightRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_GetBlockHeaderByHeightRequest, Flow_Access_BlockHeaderResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/GetBlockHeaderByHeight", requestHandler: requestHandler)
-  }
-
-  internal func enqueueGetBlockHeaderByHeightResponse(
-    _ response: Flow_Access_BlockHeaderResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetBlockHeaderByHeightRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeGetBlockHeaderByHeightResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'GetBlockHeaderByHeight'
-  internal var hasGetBlockHeaderByHeightResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/GetBlockHeaderByHeight")
-  }
-
-  /// Make a unary response for the GetLatestBlock RPC. This must be called
-  /// before calling 'getLatestBlock'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeGetLatestBlockResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetLatestBlockRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_GetLatestBlockRequest, Flow_Access_BlockResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/GetLatestBlock", requestHandler: requestHandler)
-  }
-
-  internal func enqueueGetLatestBlockResponse(
-    _ response: Flow_Access_BlockResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetLatestBlockRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeGetLatestBlockResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'GetLatestBlock'
-  internal var hasGetLatestBlockResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/GetLatestBlock")
-  }
-
-  /// Make a unary response for the GetBlockByID RPC. This must be called
-  /// before calling 'getBlockByID'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeGetBlockByIDResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetBlockByIDRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_GetBlockByIDRequest, Flow_Access_BlockResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/GetBlockByID", requestHandler: requestHandler)
-  }
-
-  internal func enqueueGetBlockByIDResponse(
-    _ response: Flow_Access_BlockResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetBlockByIDRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeGetBlockByIDResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'GetBlockByID'
-  internal var hasGetBlockByIDResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/GetBlockByID")
-  }
-
-  /// Make a unary response for the GetBlockByHeight RPC. This must be called
-  /// before calling 'getBlockByHeight'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeGetBlockByHeightResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetBlockByHeightRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_GetBlockByHeightRequest, Flow_Access_BlockResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/GetBlockByHeight", requestHandler: requestHandler)
-  }
-
-  internal func enqueueGetBlockByHeightResponse(
-    _ response: Flow_Access_BlockResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetBlockByHeightRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeGetBlockByHeightResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'GetBlockByHeight'
-  internal var hasGetBlockByHeightResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/GetBlockByHeight")
-  }
-
-  /// Make a unary response for the GetCollectionByID RPC. This must be called
-  /// before calling 'getCollectionByID'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeGetCollectionByIDResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetCollectionByIDRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_GetCollectionByIDRequest, Flow_Access_CollectionResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/GetCollectionByID", requestHandler: requestHandler)
-  }
-
-  internal func enqueueGetCollectionByIDResponse(
-    _ response: Flow_Access_CollectionResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetCollectionByIDRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeGetCollectionByIDResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'GetCollectionByID'
-  internal var hasGetCollectionByIDResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/GetCollectionByID")
-  }
-
-  /// Make a unary response for the SendTransaction RPC. This must be called
-  /// before calling 'sendTransaction'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeSendTransactionResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_SendTransactionRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_SendTransactionRequest, Flow_Access_SendTransactionResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/SendTransaction", requestHandler: requestHandler)
-  }
-
-  internal func enqueueSendTransactionResponse(
-    _ response: Flow_Access_SendTransactionResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_SendTransactionRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeSendTransactionResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'SendTransaction'
-  internal var hasSendTransactionResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/SendTransaction")
-  }
-
-  /// Make a unary response for the GetTransaction RPC. This must be called
-  /// before calling 'getTransaction'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeGetTransactionResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetTransactionRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_GetTransactionRequest, Flow_Access_TransactionResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/GetTransaction", requestHandler: requestHandler)
-  }
-
-  internal func enqueueGetTransactionResponse(
-    _ response: Flow_Access_TransactionResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetTransactionRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeGetTransactionResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'GetTransaction'
-  internal var hasGetTransactionResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/GetTransaction")
-  }
-
-  /// Make a unary response for the GetTransactionResult RPC. This must be called
-  /// before calling 'getTransactionResult'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeGetTransactionResultResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetTransactionRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_GetTransactionRequest, Flow_Access_TransactionResultResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/GetTransactionResult", requestHandler: requestHandler)
-  }
-
-  internal func enqueueGetTransactionResultResponse(
-    _ response: Flow_Access_TransactionResultResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetTransactionRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeGetTransactionResultResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'GetTransactionResult'
-  internal var hasGetTransactionResultResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/GetTransactionResult")
-  }
-
-  /// Make a unary response for the GetTransactionResultByIndex RPC. This must be called
-  /// before calling 'getTransactionResultByIndex'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeGetTransactionResultByIndexResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetTransactionByIndexRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_GetTransactionByIndexRequest, Flow_Access_TransactionResultResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/GetTransactionResultByIndex", requestHandler: requestHandler)
-  }
-
-  internal func enqueueGetTransactionResultByIndexResponse(
-    _ response: Flow_Access_TransactionResultResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetTransactionByIndexRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeGetTransactionResultByIndexResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'GetTransactionResultByIndex'
-  internal var hasGetTransactionResultByIndexResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/GetTransactionResultByIndex")
-  }
-
-  /// Make a unary response for the GetTransactionResultsByBlockID RPC. This must be called
-  /// before calling 'getTransactionResultsByBlockID'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeGetTransactionResultsByBlockIDResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetTransactionsByBlockIDRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_GetTransactionsByBlockIDRequest, Flow_Access_TransactionResultsResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/GetTransactionResultsByBlockID", requestHandler: requestHandler)
-  }
-
-  internal func enqueueGetTransactionResultsByBlockIDResponse(
-    _ response: Flow_Access_TransactionResultsResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetTransactionsByBlockIDRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeGetTransactionResultsByBlockIDResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'GetTransactionResultsByBlockID'
-  internal var hasGetTransactionResultsByBlockIDResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/GetTransactionResultsByBlockID")
-  }
-
-  /// Make a unary response for the GetTransactionsByBlockID RPC. This must be called
-  /// before calling 'getTransactionsByBlockID'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeGetTransactionsByBlockIDResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetTransactionsByBlockIDRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_GetTransactionsByBlockIDRequest, Flow_Access_TransactionsResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/GetTransactionsByBlockID", requestHandler: requestHandler)
-  }
-
-  internal func enqueueGetTransactionsByBlockIDResponse(
-    _ response: Flow_Access_TransactionsResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetTransactionsByBlockIDRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeGetTransactionsByBlockIDResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'GetTransactionsByBlockID'
-  internal var hasGetTransactionsByBlockIDResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/GetTransactionsByBlockID")
-  }
-
-  /// Make a unary response for the GetAccount RPC. This must be called
-  /// before calling 'getAccount'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeGetAccountResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetAccountRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_GetAccountRequest, Flow_Access_GetAccountResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/GetAccount", requestHandler: requestHandler)
-  }
-
-  internal func enqueueGetAccountResponse(
-    _ response: Flow_Access_GetAccountResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetAccountRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeGetAccountResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'GetAccount'
-  internal var hasGetAccountResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/GetAccount")
-  }
-
-  /// Make a unary response for the GetAccountAtLatestBlock RPC. This must be called
-  /// before calling 'getAccountAtLatestBlock'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeGetAccountAtLatestBlockResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetAccountAtLatestBlockRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_GetAccountAtLatestBlockRequest, Flow_Access_AccountResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/GetAccountAtLatestBlock", requestHandler: requestHandler)
-  }
-
-  internal func enqueueGetAccountAtLatestBlockResponse(
-    _ response: Flow_Access_AccountResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetAccountAtLatestBlockRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeGetAccountAtLatestBlockResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'GetAccountAtLatestBlock'
-  internal var hasGetAccountAtLatestBlockResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/GetAccountAtLatestBlock")
-  }
-
-  /// Make a unary response for the GetAccountAtBlockHeight RPC. This must be called
-  /// before calling 'getAccountAtBlockHeight'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeGetAccountAtBlockHeightResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetAccountAtBlockHeightRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_GetAccountAtBlockHeightRequest, Flow_Access_AccountResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/GetAccountAtBlockHeight", requestHandler: requestHandler)
-  }
-
-  internal func enqueueGetAccountAtBlockHeightResponse(
-    _ response: Flow_Access_AccountResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetAccountAtBlockHeightRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeGetAccountAtBlockHeightResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'GetAccountAtBlockHeight'
-  internal var hasGetAccountAtBlockHeightResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/GetAccountAtBlockHeight")
-  }
-
-  /// Make a unary response for the ExecuteScriptAtLatestBlock RPC. This must be called
-  /// before calling 'executeScriptAtLatestBlock'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeExecuteScriptAtLatestBlockResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_ExecuteScriptAtLatestBlockRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_ExecuteScriptAtLatestBlockRequest, Flow_Access_ExecuteScriptResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/ExecuteScriptAtLatestBlock", requestHandler: requestHandler)
-  }
-
-  internal func enqueueExecuteScriptAtLatestBlockResponse(
-    _ response: Flow_Access_ExecuteScriptResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_ExecuteScriptAtLatestBlockRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeExecuteScriptAtLatestBlockResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'ExecuteScriptAtLatestBlock'
-  internal var hasExecuteScriptAtLatestBlockResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/ExecuteScriptAtLatestBlock")
-  }
-
-  /// Make a unary response for the ExecuteScriptAtBlockID RPC. This must be called
-  /// before calling 'executeScriptAtBlockID'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeExecuteScriptAtBlockIDResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_ExecuteScriptAtBlockIDRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_ExecuteScriptAtBlockIDRequest, Flow_Access_ExecuteScriptResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/ExecuteScriptAtBlockID", requestHandler: requestHandler)
-  }
-
-  internal func enqueueExecuteScriptAtBlockIDResponse(
-    _ response: Flow_Access_ExecuteScriptResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_ExecuteScriptAtBlockIDRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeExecuteScriptAtBlockIDResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'ExecuteScriptAtBlockID'
-  internal var hasExecuteScriptAtBlockIDResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/ExecuteScriptAtBlockID")
-  }
-
-  /// Make a unary response for the ExecuteScriptAtBlockHeight RPC. This must be called
-  /// before calling 'executeScriptAtBlockHeight'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeExecuteScriptAtBlockHeightResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_ExecuteScriptAtBlockHeightRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_ExecuteScriptAtBlockHeightRequest, Flow_Access_ExecuteScriptResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/ExecuteScriptAtBlockHeight", requestHandler: requestHandler)
-  }
-
-  internal func enqueueExecuteScriptAtBlockHeightResponse(
-    _ response: Flow_Access_ExecuteScriptResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_ExecuteScriptAtBlockHeightRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeExecuteScriptAtBlockHeightResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'ExecuteScriptAtBlockHeight'
-  internal var hasExecuteScriptAtBlockHeightResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/ExecuteScriptAtBlockHeight")
-  }
-
-  /// Make a unary response for the GetEventsForHeightRange RPC. This must be called
-  /// before calling 'getEventsForHeightRange'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeGetEventsForHeightRangeResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetEventsForHeightRangeRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_GetEventsForHeightRangeRequest, Flow_Access_EventsResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/GetEventsForHeightRange", requestHandler: requestHandler)
-  }
-
-  internal func enqueueGetEventsForHeightRangeResponse(
-    _ response: Flow_Access_EventsResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetEventsForHeightRangeRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeGetEventsForHeightRangeResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'GetEventsForHeightRange'
-  internal var hasGetEventsForHeightRangeResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/GetEventsForHeightRange")
-  }
-
-  /// Make a unary response for the GetEventsForBlockIDs RPC. This must be called
-  /// before calling 'getEventsForBlockIDs'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeGetEventsForBlockIDsResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetEventsForBlockIDsRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_GetEventsForBlockIDsRequest, Flow_Access_EventsResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/GetEventsForBlockIDs", requestHandler: requestHandler)
-  }
-
-  internal func enqueueGetEventsForBlockIDsResponse(
-    _ response: Flow_Access_EventsResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetEventsForBlockIDsRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeGetEventsForBlockIDsResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'GetEventsForBlockIDs'
-  internal var hasGetEventsForBlockIDsResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/GetEventsForBlockIDs")
-  }
-
-  /// Make a unary response for the GetNetworkParameters RPC. This must be called
-  /// before calling 'getNetworkParameters'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeGetNetworkParametersResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetNetworkParametersRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_GetNetworkParametersRequest, Flow_Access_GetNetworkParametersResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/GetNetworkParameters", requestHandler: requestHandler)
-  }
-
-  internal func enqueueGetNetworkParametersResponse(
-    _ response: Flow_Access_GetNetworkParametersResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetNetworkParametersRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeGetNetworkParametersResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'GetNetworkParameters'
-  internal var hasGetNetworkParametersResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/GetNetworkParameters")
-  }
-
-  /// Make a unary response for the GetLatestProtocolStateSnapshot RPC. This must be called
-  /// before calling 'getLatestProtocolStateSnapshot'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeGetLatestProtocolStateSnapshotResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetLatestProtocolStateSnapshotRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_GetLatestProtocolStateSnapshotRequest, Flow_Access_ProtocolStateSnapshotResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/GetLatestProtocolStateSnapshot", requestHandler: requestHandler)
-  }
-
-  internal func enqueueGetLatestProtocolStateSnapshotResponse(
-    _ response: Flow_Access_ProtocolStateSnapshotResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetLatestProtocolStateSnapshotRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeGetLatestProtocolStateSnapshotResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'GetLatestProtocolStateSnapshot'
-  internal var hasGetLatestProtocolStateSnapshotResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/GetLatestProtocolStateSnapshot")
-  }
-
-  /// Make a unary response for the GetExecutionResultForBlockID RPC. This must be called
-  /// before calling 'getExecutionResultForBlockID'. See also 'FakeUnaryResponse'.
-  ///
-  /// - Parameter requestHandler: a handler for request parts sent by the RPC.
-  internal func makeGetExecutionResultForBlockIDResponseStream(
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetExecutionResultForBlockIDRequest>) -> () = { _ in }
-  ) -> FakeUnaryResponse<Flow_Access_GetExecutionResultForBlockIDRequest, Flow_Access_ExecutionResultForBlockIDResponse> {
-    return self.fakeChannel.makeFakeUnaryResponse(path: "/flow.access.AccessAPI/GetExecutionResultForBlockID", requestHandler: requestHandler)
-  }
-
-  internal func enqueueGetExecutionResultForBlockIDResponse(
-    _ response: Flow_Access_ExecutionResultForBlockIDResponse,
-    _ requestHandler: @escaping (FakeRequestPart<Flow_Access_GetExecutionResultForBlockIDRequest>) -> () = { _ in }
-  )  {
-    let stream = self.makeGetExecutionResultForBlockIDResponseStream(requestHandler)
-    // This is the only operation on the stream; try! is fine.
-    try! stream.sendMessage(response)
-  }
-
-  /// Returns true if there are response streams enqueued for 'GetExecutionResultForBlockID'
-  internal var hasGetExecutionResultForBlockIDResponsesRemaining: Bool {
-    return self.fakeChannel.hasFakeResponseEnqueued(forPath: "/flow.access.AccessAPI/GetExecutionResultForBlockID")
+  /// Warning: this function is deprecated. It behaves identically to
+  /// GetAccountAtLatestBlock and will be removed in a future version.
+  func getAccount(request: Flow_Access_GetAccountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_GetAccountResponse>
+
+  /// GetAccountAtLatestBlock gets an account by address from the latest sealed
+  /// execution state.
+  func getAccountAtLatestBlock(request: Flow_Access_GetAccountAtLatestBlockRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_AccountResponse>
+
+  /// GetAccountAtBlockHeight gets an account by address at the given block
+  /// height
+  func getAccountAtBlockHeight(request: Flow_Access_GetAccountAtBlockHeightRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_AccountResponse>
+
+  /// ExecuteScriptAtLatestBlock executes a read-only Cadence script against the
+  /// latest sealed execution state.
+  func executeScriptAtLatestBlock(request: Flow_Access_ExecuteScriptAtLatestBlockRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_ExecuteScriptResponse>
+
+  /// ExecuteScriptAtBlockID executes a ready-only Cadence script against the
+  /// execution state at the block with the given ID.
+  func executeScriptAtBlockID(request: Flow_Access_ExecuteScriptAtBlockIDRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_ExecuteScriptResponse>
+
+  /// ExecuteScriptAtBlockHeight executes a ready-only Cadence script against the
+  /// execution state at the given block height.
+  func executeScriptAtBlockHeight(request: Flow_Access_ExecuteScriptAtBlockHeightRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_ExecuteScriptResponse>
+
+  /// GetEventsForHeightRange retrieves events emitted within the specified block
+  /// range.
+  func getEventsForHeightRange(request: Flow_Access_GetEventsForHeightRangeRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_EventsResponse>
+
+  /// GetEventsForBlockIDs retrieves events for the specified block IDs and event
+  /// type.
+  func getEventsForBlockIDs(request: Flow_Access_GetEventsForBlockIDsRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_EventsResponse>
+
+  /// GetNetworkParameters retrieves the Flow network details
+  func getNetworkParameters(request: Flow_Access_GetNetworkParametersRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_GetNetworkParametersResponse>
+
+  /// GetLatestProtocolStateSnapshot retrieves the latest sealed protocol state
+  /// snapshot. Used by Flow nodes joining the network to bootstrap a
+  /// space-efficient local state.
+  func getLatestProtocolStateSnapshot(request: Flow_Access_GetLatestProtocolStateSnapshotRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_ProtocolStateSnapshotResponse>
+
+  /// GetExecutionResultForBlockID returns Execution Result for a given block.
+  /// At present, Access Node might not have execution results for every block
+  /// and as usual, until sealed, this data can change
+  func getExecutionResultForBlockID(request: Flow_Access_GetExecutionResultForBlockIDRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Flow_Access_ExecutionResultForBlockIDResponse>
+}
+
+extension Flow_Access_AccessAPIProvider {
+  internal var serviceName: Substring {
+    return Flow_Access_AccessAPIServerMetadata.serviceDescriptor.fullName[...]
+  }
+
+  /// Determines, calls and returns the appropriate request handler, depending on the request's method.
+  /// Returns nil for methods not handled by this service.
+  internal func handle(
+    method name: Substring,
+    context: CallHandlerContext
+  ) -> GRPCServerHandlerProtocol? {
+    switch name {
+    case "Ping":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_PingRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_PingResponse>(),
+        interceptors: self.interceptors?.makePingInterceptors() ?? [],
+        userFunction: self.ping(request:context:)
+      )
+
+    case "GetLatestBlockHeader":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetLatestBlockHeaderRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_BlockHeaderResponse>(),
+        interceptors: self.interceptors?.makeGetLatestBlockHeaderInterceptors() ?? [],
+        userFunction: self.getLatestBlockHeader(request:context:)
+      )
+
+    case "GetBlockHeaderByID":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetBlockHeaderByIDRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_BlockHeaderResponse>(),
+        interceptors: self.interceptors?.makeGetBlockHeaderByIDInterceptors() ?? [],
+        userFunction: self.getBlockHeaderByID(request:context:)
+      )
+
+    case "GetBlockHeaderByHeight":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetBlockHeaderByHeightRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_BlockHeaderResponse>(),
+        interceptors: self.interceptors?.makeGetBlockHeaderByHeightInterceptors() ?? [],
+        userFunction: self.getBlockHeaderByHeight(request:context:)
+      )
+
+    case "GetLatestBlock":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetLatestBlockRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_BlockResponse>(),
+        interceptors: self.interceptors?.makeGetLatestBlockInterceptors() ?? [],
+        userFunction: self.getLatestBlock(request:context:)
+      )
+
+    case "GetBlockByID":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetBlockByIDRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_BlockResponse>(),
+        interceptors: self.interceptors?.makeGetBlockByIDInterceptors() ?? [],
+        userFunction: self.getBlockByID(request:context:)
+      )
+
+    case "GetBlockByHeight":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetBlockByHeightRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_BlockResponse>(),
+        interceptors: self.interceptors?.makeGetBlockByHeightInterceptors() ?? [],
+        userFunction: self.getBlockByHeight(request:context:)
+      )
+
+    case "GetCollectionByID":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetCollectionByIDRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_CollectionResponse>(),
+        interceptors: self.interceptors?.makeGetCollectionByIDInterceptors() ?? [],
+        userFunction: self.getCollectionByID(request:context:)
+      )
+
+    case "SendTransaction":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_SendTransactionRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_SendTransactionResponse>(),
+        interceptors: self.interceptors?.makeSendTransactionInterceptors() ?? [],
+        userFunction: self.sendTransaction(request:context:)
+      )
+
+    case "GetTransaction":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetTransactionRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_TransactionResponse>(),
+        interceptors: self.interceptors?.makeGetTransactionInterceptors() ?? [],
+        userFunction: self.getTransaction(request:context:)
+      )
+
+    case "GetTransactionResult":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetTransactionRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_TransactionResultResponse>(),
+        interceptors: self.interceptors?.makeGetTransactionResultInterceptors() ?? [],
+        userFunction: self.getTransactionResult(request:context:)
+      )
+
+    case "GetTransactionResultByIndex":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetTransactionByIndexRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_TransactionResultResponse>(),
+        interceptors: self.interceptors?.makeGetTransactionResultByIndexInterceptors() ?? [],
+        userFunction: self.getTransactionResultByIndex(request:context:)
+      )
+
+    case "GetTransactionResultsByBlockID":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetTransactionsByBlockIDRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_TransactionResultsResponse>(),
+        interceptors: self.interceptors?.makeGetTransactionResultsByBlockIDInterceptors() ?? [],
+        userFunction: self.getTransactionResultsByBlockID(request:context:)
+      )
+
+    case "GetTransactionsByBlockID":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetTransactionsByBlockIDRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_TransactionsResponse>(),
+        interceptors: self.interceptors?.makeGetTransactionsByBlockIDInterceptors() ?? [],
+        userFunction: self.getTransactionsByBlockID(request:context:)
+      )
+
+    case "GetAccount":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetAccountRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_GetAccountResponse>(),
+        interceptors: self.interceptors?.makeGetAccountInterceptors() ?? [],
+        userFunction: self.getAccount(request:context:)
+      )
+
+    case "GetAccountAtLatestBlock":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetAccountAtLatestBlockRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_AccountResponse>(),
+        interceptors: self.interceptors?.makeGetAccountAtLatestBlockInterceptors() ?? [],
+        userFunction: self.getAccountAtLatestBlock(request:context:)
+      )
+
+    case "GetAccountAtBlockHeight":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetAccountAtBlockHeightRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_AccountResponse>(),
+        interceptors: self.interceptors?.makeGetAccountAtBlockHeightInterceptors() ?? [],
+        userFunction: self.getAccountAtBlockHeight(request:context:)
+      )
+
+    case "ExecuteScriptAtLatestBlock":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_ExecuteScriptAtLatestBlockRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_ExecuteScriptResponse>(),
+        interceptors: self.interceptors?.makeExecuteScriptAtLatestBlockInterceptors() ?? [],
+        userFunction: self.executeScriptAtLatestBlock(request:context:)
+      )
+
+    case "ExecuteScriptAtBlockID":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_ExecuteScriptAtBlockIDRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_ExecuteScriptResponse>(),
+        interceptors: self.interceptors?.makeExecuteScriptAtBlockIDInterceptors() ?? [],
+        userFunction: self.executeScriptAtBlockID(request:context:)
+      )
+
+    case "ExecuteScriptAtBlockHeight":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_ExecuteScriptAtBlockHeightRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_ExecuteScriptResponse>(),
+        interceptors: self.interceptors?.makeExecuteScriptAtBlockHeightInterceptors() ?? [],
+        userFunction: self.executeScriptAtBlockHeight(request:context:)
+      )
+
+    case "GetEventsForHeightRange":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetEventsForHeightRangeRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_EventsResponse>(),
+        interceptors: self.interceptors?.makeGetEventsForHeightRangeInterceptors() ?? [],
+        userFunction: self.getEventsForHeightRange(request:context:)
+      )
+
+    case "GetEventsForBlockIDs":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetEventsForBlockIDsRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_EventsResponse>(),
+        interceptors: self.interceptors?.makeGetEventsForBlockIDsInterceptors() ?? [],
+        userFunction: self.getEventsForBlockIDs(request:context:)
+      )
+
+    case "GetNetworkParameters":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetNetworkParametersRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_GetNetworkParametersResponse>(),
+        interceptors: self.interceptors?.makeGetNetworkParametersInterceptors() ?? [],
+        userFunction: self.getNetworkParameters(request:context:)
+      )
+
+    case "GetLatestProtocolStateSnapshot":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetLatestProtocolStateSnapshotRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_ProtocolStateSnapshotResponse>(),
+        interceptors: self.interceptors?.makeGetLatestProtocolStateSnapshotInterceptors() ?? [],
+        userFunction: self.getLatestProtocolStateSnapshot(request:context:)
+      )
+
+    case "GetExecutionResultForBlockID":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetExecutionResultForBlockIDRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_ExecutionResultForBlockIDResponse>(),
+        interceptors: self.interceptors?.makeGetExecutionResultForBlockIDInterceptors() ?? [],
+        userFunction: self.getExecutionResultForBlockID(request:context:)
+      )
+
+    default:
+      return nil
+    }
   }
 }
 
+#if compiler(>=5.6)
+
+/// AccessAPI is the public-facing API provided by access nodes.
+///
+/// To implement a server, implement an object which conforms to this protocol.
+@available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+internal protocol Flow_Access_AccessAPIAsyncProvider: CallHandlerProvider {
+  static var serviceDescriptor: GRPCServiceDescriptor { get }
+  var interceptors: Flow_Access_AccessAPIServerInterceptorFactoryProtocol? { get }
+
+  /// Ping is used to check if the access node is alive and healthy.
+  @Sendable func ping(
+    request: Flow_Access_PingRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_PingResponse
+
+  /// GetLatestBlockHeader gets the latest sealed or unsealed block header.
+  @Sendable func getLatestBlockHeader(
+    request: Flow_Access_GetLatestBlockHeaderRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_BlockHeaderResponse
+
+  /// GetBlockHeaderByID gets a block header by ID.
+  @Sendable func getBlockHeaderByID(
+    request: Flow_Access_GetBlockHeaderByIDRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_BlockHeaderResponse
+
+  /// GetBlockHeaderByHeight gets a block header by height.
+  @Sendable func getBlockHeaderByHeight(
+    request: Flow_Access_GetBlockHeaderByHeightRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_BlockHeaderResponse
+
+  /// GetLatestBlock gets the full payload of the latest sealed or unsealed
+  /// block.
+  @Sendable func getLatestBlock(
+    request: Flow_Access_GetLatestBlockRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_BlockResponse
+
+  /// GetBlockByID gets a full block by ID.
+  @Sendable func getBlockByID(
+    request: Flow_Access_GetBlockByIDRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_BlockResponse
+
+  /// GetBlockByHeight gets a full block by height.
+  @Sendable func getBlockByHeight(
+    request: Flow_Access_GetBlockByHeightRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_BlockResponse
+
+  /// GetCollectionByID gets a collection by ID.
+  @Sendable func getCollectionByID(
+    request: Flow_Access_GetCollectionByIDRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_CollectionResponse
+
+  /// SendTransaction submits a transaction to the network.
+  @Sendable func sendTransaction(
+    request: Flow_Access_SendTransactionRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_SendTransactionResponse
+
+  /// GetTransaction gets a transaction by ID.
+  @Sendable func getTransaction(
+    request: Flow_Access_GetTransactionRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_TransactionResponse
+
+  /// GetTransactionResult gets the result of a transaction.
+  @Sendable func getTransactionResult(
+    request: Flow_Access_GetTransactionRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_TransactionResultResponse
+
+  /// GetTransactionResultByIndex gets the result of a transaction at a specified
+  /// block and index
+  @Sendable func getTransactionResultByIndex(
+    request: Flow_Access_GetTransactionByIndexRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_TransactionResultResponse
+
+  /// GetTransactionResultsByBlockID gets all the transaction results for a
+  /// specified block
+  @Sendable func getTransactionResultsByBlockID(
+    request: Flow_Access_GetTransactionsByBlockIDRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_TransactionResultsResponse
+
+  /// GetTransactionsByBlockID gets all the transactions for a specified block
+  @Sendable func getTransactionsByBlockID(
+    request: Flow_Access_GetTransactionsByBlockIDRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_TransactionsResponse
+
+  /// GetAccount is an alias for GetAccountAtLatestBlock.
+  ///
+  /// Warning: this function is deprecated. It behaves identically to
+  /// GetAccountAtLatestBlock and will be removed in a future version.
+  @Sendable func getAccount(
+    request: Flow_Access_GetAccountRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_GetAccountResponse
+
+  /// GetAccountAtLatestBlock gets an account by address from the latest sealed
+  /// execution state.
+  @Sendable func getAccountAtLatestBlock(
+    request: Flow_Access_GetAccountAtLatestBlockRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_AccountResponse
+
+  /// GetAccountAtBlockHeight gets an account by address at the given block
+  /// height
+  @Sendable func getAccountAtBlockHeight(
+    request: Flow_Access_GetAccountAtBlockHeightRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_AccountResponse
+
+  /// ExecuteScriptAtLatestBlock executes a read-only Cadence script against the
+  /// latest sealed execution state.
+  @Sendable func executeScriptAtLatestBlock(
+    request: Flow_Access_ExecuteScriptAtLatestBlockRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_ExecuteScriptResponse
+
+  /// ExecuteScriptAtBlockID executes a ready-only Cadence script against the
+  /// execution state at the block with the given ID.
+  @Sendable func executeScriptAtBlockID(
+    request: Flow_Access_ExecuteScriptAtBlockIDRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_ExecuteScriptResponse
+
+  /// ExecuteScriptAtBlockHeight executes a ready-only Cadence script against the
+  /// execution state at the given block height.
+  @Sendable func executeScriptAtBlockHeight(
+    request: Flow_Access_ExecuteScriptAtBlockHeightRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_ExecuteScriptResponse
+
+  /// GetEventsForHeightRange retrieves events emitted within the specified block
+  /// range.
+  @Sendable func getEventsForHeightRange(
+    request: Flow_Access_GetEventsForHeightRangeRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_EventsResponse
+
+  /// GetEventsForBlockIDs retrieves events for the specified block IDs and event
+  /// type.
+  @Sendable func getEventsForBlockIDs(
+    request: Flow_Access_GetEventsForBlockIDsRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_EventsResponse
+
+  /// GetNetworkParameters retrieves the Flow network details
+  @Sendable func getNetworkParameters(
+    request: Flow_Access_GetNetworkParametersRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_GetNetworkParametersResponse
+
+  /// GetLatestProtocolStateSnapshot retrieves the latest sealed protocol state
+  /// snapshot. Used by Flow nodes joining the network to bootstrap a
+  /// space-efficient local state.
+  @Sendable func getLatestProtocolStateSnapshot(
+    request: Flow_Access_GetLatestProtocolStateSnapshotRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_ProtocolStateSnapshotResponse
+
+  /// GetExecutionResultForBlockID returns Execution Result for a given block.
+  /// At present, Access Node might not have execution results for every block
+  /// and as usual, until sealed, this data can change
+  @Sendable func getExecutionResultForBlockID(
+    request: Flow_Access_GetExecutionResultForBlockIDRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Flow_Access_ExecutionResultForBlockIDResponse
+}
+
+@available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+extension Flow_Access_AccessAPIAsyncProvider {
+  internal static var serviceDescriptor: GRPCServiceDescriptor {
+    return Flow_Access_AccessAPIServerMetadata.serviceDescriptor
+  }
+
+  internal var serviceName: Substring {
+    return Flow_Access_AccessAPIServerMetadata.serviceDescriptor.fullName[...]
+  }
+
+  internal var interceptors: Flow_Access_AccessAPIServerInterceptorFactoryProtocol? {
+    return nil
+  }
+
+  internal func handle(
+    method name: Substring,
+    context: CallHandlerContext
+  ) -> GRPCServerHandlerProtocol? {
+    switch name {
+    case "Ping":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_PingRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_PingResponse>(),
+        interceptors: self.interceptors?.makePingInterceptors() ?? [],
+        wrapping: self.ping(request:context:)
+      )
+
+    case "GetLatestBlockHeader":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetLatestBlockHeaderRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_BlockHeaderResponse>(),
+        interceptors: self.interceptors?.makeGetLatestBlockHeaderInterceptors() ?? [],
+        wrapping: self.getLatestBlockHeader(request:context:)
+      )
+
+    case "GetBlockHeaderByID":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetBlockHeaderByIDRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_BlockHeaderResponse>(),
+        interceptors: self.interceptors?.makeGetBlockHeaderByIDInterceptors() ?? [],
+        wrapping: self.getBlockHeaderByID(request:context:)
+      )
+
+    case "GetBlockHeaderByHeight":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetBlockHeaderByHeightRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_BlockHeaderResponse>(),
+        interceptors: self.interceptors?.makeGetBlockHeaderByHeightInterceptors() ?? [],
+        wrapping: self.getBlockHeaderByHeight(request:context:)
+      )
+
+    case "GetLatestBlock":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetLatestBlockRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_BlockResponse>(),
+        interceptors: self.interceptors?.makeGetLatestBlockInterceptors() ?? [],
+        wrapping: self.getLatestBlock(request:context:)
+      )
+
+    case "GetBlockByID":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetBlockByIDRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_BlockResponse>(),
+        interceptors: self.interceptors?.makeGetBlockByIDInterceptors() ?? [],
+        wrapping: self.getBlockByID(request:context:)
+      )
+
+    case "GetBlockByHeight":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetBlockByHeightRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_BlockResponse>(),
+        interceptors: self.interceptors?.makeGetBlockByHeightInterceptors() ?? [],
+        wrapping: self.getBlockByHeight(request:context:)
+      )
+
+    case "GetCollectionByID":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetCollectionByIDRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_CollectionResponse>(),
+        interceptors: self.interceptors?.makeGetCollectionByIDInterceptors() ?? [],
+        wrapping: self.getCollectionByID(request:context:)
+      )
+
+    case "SendTransaction":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_SendTransactionRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_SendTransactionResponse>(),
+        interceptors: self.interceptors?.makeSendTransactionInterceptors() ?? [],
+        wrapping: self.sendTransaction(request:context:)
+      )
+
+    case "GetTransaction":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetTransactionRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_TransactionResponse>(),
+        interceptors: self.interceptors?.makeGetTransactionInterceptors() ?? [],
+        wrapping: self.getTransaction(request:context:)
+      )
+
+    case "GetTransactionResult":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetTransactionRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_TransactionResultResponse>(),
+        interceptors: self.interceptors?.makeGetTransactionResultInterceptors() ?? [],
+        wrapping: self.getTransactionResult(request:context:)
+      )
+
+    case "GetTransactionResultByIndex":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetTransactionByIndexRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_TransactionResultResponse>(),
+        interceptors: self.interceptors?.makeGetTransactionResultByIndexInterceptors() ?? [],
+        wrapping: self.getTransactionResultByIndex(request:context:)
+      )
+
+    case "GetTransactionResultsByBlockID":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetTransactionsByBlockIDRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_TransactionResultsResponse>(),
+        interceptors: self.interceptors?.makeGetTransactionResultsByBlockIDInterceptors() ?? [],
+        wrapping: self.getTransactionResultsByBlockID(request:context:)
+      )
+
+    case "GetTransactionsByBlockID":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetTransactionsByBlockIDRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_TransactionsResponse>(),
+        interceptors: self.interceptors?.makeGetTransactionsByBlockIDInterceptors() ?? [],
+        wrapping: self.getTransactionsByBlockID(request:context:)
+      )
+
+    case "GetAccount":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetAccountRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_GetAccountResponse>(),
+        interceptors: self.interceptors?.makeGetAccountInterceptors() ?? [],
+        wrapping: self.getAccount(request:context:)
+      )
+
+    case "GetAccountAtLatestBlock":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetAccountAtLatestBlockRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_AccountResponse>(),
+        interceptors: self.interceptors?.makeGetAccountAtLatestBlockInterceptors() ?? [],
+        wrapping: self.getAccountAtLatestBlock(request:context:)
+      )
+
+    case "GetAccountAtBlockHeight":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetAccountAtBlockHeightRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_AccountResponse>(),
+        interceptors: self.interceptors?.makeGetAccountAtBlockHeightInterceptors() ?? [],
+        wrapping: self.getAccountAtBlockHeight(request:context:)
+      )
+
+    case "ExecuteScriptAtLatestBlock":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_ExecuteScriptAtLatestBlockRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_ExecuteScriptResponse>(),
+        interceptors: self.interceptors?.makeExecuteScriptAtLatestBlockInterceptors() ?? [],
+        wrapping: self.executeScriptAtLatestBlock(request:context:)
+      )
+
+    case "ExecuteScriptAtBlockID":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_ExecuteScriptAtBlockIDRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_ExecuteScriptResponse>(),
+        interceptors: self.interceptors?.makeExecuteScriptAtBlockIDInterceptors() ?? [],
+        wrapping: self.executeScriptAtBlockID(request:context:)
+      )
+
+    case "ExecuteScriptAtBlockHeight":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_ExecuteScriptAtBlockHeightRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_ExecuteScriptResponse>(),
+        interceptors: self.interceptors?.makeExecuteScriptAtBlockHeightInterceptors() ?? [],
+        wrapping: self.executeScriptAtBlockHeight(request:context:)
+      )
+
+    case "GetEventsForHeightRange":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetEventsForHeightRangeRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_EventsResponse>(),
+        interceptors: self.interceptors?.makeGetEventsForHeightRangeInterceptors() ?? [],
+        wrapping: self.getEventsForHeightRange(request:context:)
+      )
+
+    case "GetEventsForBlockIDs":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetEventsForBlockIDsRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_EventsResponse>(),
+        interceptors: self.interceptors?.makeGetEventsForBlockIDsInterceptors() ?? [],
+        wrapping: self.getEventsForBlockIDs(request:context:)
+      )
+
+    case "GetNetworkParameters":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetNetworkParametersRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_GetNetworkParametersResponse>(),
+        interceptors: self.interceptors?.makeGetNetworkParametersInterceptors() ?? [],
+        wrapping: self.getNetworkParameters(request:context:)
+      )
+
+    case "GetLatestProtocolStateSnapshot":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetLatestProtocolStateSnapshotRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_ProtocolStateSnapshotResponse>(),
+        interceptors: self.interceptors?.makeGetLatestProtocolStateSnapshotInterceptors() ?? [],
+        wrapping: self.getLatestProtocolStateSnapshot(request:context:)
+      )
+
+    case "GetExecutionResultForBlockID":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Flow_Access_GetExecutionResultForBlockIDRequest>(),
+        responseSerializer: ProtobufSerializer<Flow_Access_ExecutionResultForBlockIDResponse>(),
+        interceptors: self.interceptors?.makeGetExecutionResultForBlockIDInterceptors() ?? [],
+        wrapping: self.getExecutionResultForBlockID(request:context:)
+      )
+
+    default:
+      return nil
+    }
+  }
+}
+
+#endif // compiler(>=5.6)
+
+internal protocol Flow_Access_AccessAPIServerInterceptorFactoryProtocol {
+
+  /// - Returns: Interceptors to use when handling 'ping'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makePingInterceptors() -> [ServerInterceptor<Flow_Access_PingRequest, Flow_Access_PingResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getLatestBlockHeader'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetLatestBlockHeaderInterceptors() -> [ServerInterceptor<Flow_Access_GetLatestBlockHeaderRequest, Flow_Access_BlockHeaderResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getBlockHeaderByID'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetBlockHeaderByIDInterceptors() -> [ServerInterceptor<Flow_Access_GetBlockHeaderByIDRequest, Flow_Access_BlockHeaderResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getBlockHeaderByHeight'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetBlockHeaderByHeightInterceptors() -> [ServerInterceptor<Flow_Access_GetBlockHeaderByHeightRequest, Flow_Access_BlockHeaderResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getLatestBlock'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetLatestBlockInterceptors() -> [ServerInterceptor<Flow_Access_GetLatestBlockRequest, Flow_Access_BlockResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getBlockByID'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetBlockByIDInterceptors() -> [ServerInterceptor<Flow_Access_GetBlockByIDRequest, Flow_Access_BlockResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getBlockByHeight'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetBlockByHeightInterceptors() -> [ServerInterceptor<Flow_Access_GetBlockByHeightRequest, Flow_Access_BlockResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getCollectionByID'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetCollectionByIDInterceptors() -> [ServerInterceptor<Flow_Access_GetCollectionByIDRequest, Flow_Access_CollectionResponse>]
+
+  /// - Returns: Interceptors to use when handling 'sendTransaction'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeSendTransactionInterceptors() -> [ServerInterceptor<Flow_Access_SendTransactionRequest, Flow_Access_SendTransactionResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getTransaction'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetTransactionInterceptors() -> [ServerInterceptor<Flow_Access_GetTransactionRequest, Flow_Access_TransactionResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getTransactionResult'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetTransactionResultInterceptors() -> [ServerInterceptor<Flow_Access_GetTransactionRequest, Flow_Access_TransactionResultResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getTransactionResultByIndex'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetTransactionResultByIndexInterceptors() -> [ServerInterceptor<Flow_Access_GetTransactionByIndexRequest, Flow_Access_TransactionResultResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getTransactionResultsByBlockID'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetTransactionResultsByBlockIDInterceptors() -> [ServerInterceptor<Flow_Access_GetTransactionsByBlockIDRequest, Flow_Access_TransactionResultsResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getTransactionsByBlockID'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetTransactionsByBlockIDInterceptors() -> [ServerInterceptor<Flow_Access_GetTransactionsByBlockIDRequest, Flow_Access_TransactionsResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getAccount'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetAccountInterceptors() -> [ServerInterceptor<Flow_Access_GetAccountRequest, Flow_Access_GetAccountResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getAccountAtLatestBlock'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetAccountAtLatestBlockInterceptors() -> [ServerInterceptor<Flow_Access_GetAccountAtLatestBlockRequest, Flow_Access_AccountResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getAccountAtBlockHeight'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetAccountAtBlockHeightInterceptors() -> [ServerInterceptor<Flow_Access_GetAccountAtBlockHeightRequest, Flow_Access_AccountResponse>]
+
+  /// - Returns: Interceptors to use when handling 'executeScriptAtLatestBlock'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeExecuteScriptAtLatestBlockInterceptors() -> [ServerInterceptor<Flow_Access_ExecuteScriptAtLatestBlockRequest, Flow_Access_ExecuteScriptResponse>]
+
+  /// - Returns: Interceptors to use when handling 'executeScriptAtBlockID'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeExecuteScriptAtBlockIDInterceptors() -> [ServerInterceptor<Flow_Access_ExecuteScriptAtBlockIDRequest, Flow_Access_ExecuteScriptResponse>]
+
+  /// - Returns: Interceptors to use when handling 'executeScriptAtBlockHeight'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeExecuteScriptAtBlockHeightInterceptors() -> [ServerInterceptor<Flow_Access_ExecuteScriptAtBlockHeightRequest, Flow_Access_ExecuteScriptResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getEventsForHeightRange'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetEventsForHeightRangeInterceptors() -> [ServerInterceptor<Flow_Access_GetEventsForHeightRangeRequest, Flow_Access_EventsResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getEventsForBlockIDs'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetEventsForBlockIDsInterceptors() -> [ServerInterceptor<Flow_Access_GetEventsForBlockIDsRequest, Flow_Access_EventsResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getNetworkParameters'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetNetworkParametersInterceptors() -> [ServerInterceptor<Flow_Access_GetNetworkParametersRequest, Flow_Access_GetNetworkParametersResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getLatestProtocolStateSnapshot'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetLatestProtocolStateSnapshotInterceptors() -> [ServerInterceptor<Flow_Access_GetLatestProtocolStateSnapshotRequest, Flow_Access_ProtocolStateSnapshotResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getExecutionResultForBlockID'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetExecutionResultForBlockIDInterceptors() -> [ServerInterceptor<Flow_Access_GetExecutionResultForBlockIDRequest, Flow_Access_ExecutionResultForBlockIDResponse>]
+}
+
+internal enum Flow_Access_AccessAPIServerMetadata {
+  internal static let serviceDescriptor = GRPCServiceDescriptor(
+    name: "AccessAPI",
+    fullName: "flow.access.AccessAPI",
+    methods: [
+      Flow_Access_AccessAPIServerMetadata.Methods.ping,
+      Flow_Access_AccessAPIServerMetadata.Methods.getLatestBlockHeader,
+      Flow_Access_AccessAPIServerMetadata.Methods.getBlockHeaderByID,
+      Flow_Access_AccessAPIServerMetadata.Methods.getBlockHeaderByHeight,
+      Flow_Access_AccessAPIServerMetadata.Methods.getLatestBlock,
+      Flow_Access_AccessAPIServerMetadata.Methods.getBlockByID,
+      Flow_Access_AccessAPIServerMetadata.Methods.getBlockByHeight,
+      Flow_Access_AccessAPIServerMetadata.Methods.getCollectionByID,
+      Flow_Access_AccessAPIServerMetadata.Methods.sendTransaction,
+      Flow_Access_AccessAPIServerMetadata.Methods.getTransaction,
+      Flow_Access_AccessAPIServerMetadata.Methods.getTransactionResult,
+      Flow_Access_AccessAPIServerMetadata.Methods.getTransactionResultByIndex,
+      Flow_Access_AccessAPIServerMetadata.Methods.getTransactionResultsByBlockID,
+      Flow_Access_AccessAPIServerMetadata.Methods.getTransactionsByBlockID,
+      Flow_Access_AccessAPIServerMetadata.Methods.getAccount,
+      Flow_Access_AccessAPIServerMetadata.Methods.getAccountAtLatestBlock,
+      Flow_Access_AccessAPIServerMetadata.Methods.getAccountAtBlockHeight,
+      Flow_Access_AccessAPIServerMetadata.Methods.executeScriptAtLatestBlock,
+      Flow_Access_AccessAPIServerMetadata.Methods.executeScriptAtBlockID,
+      Flow_Access_AccessAPIServerMetadata.Methods.executeScriptAtBlockHeight,
+      Flow_Access_AccessAPIServerMetadata.Methods.getEventsForHeightRange,
+      Flow_Access_AccessAPIServerMetadata.Methods.getEventsForBlockIDs,
+      Flow_Access_AccessAPIServerMetadata.Methods.getNetworkParameters,
+      Flow_Access_AccessAPIServerMetadata.Methods.getLatestProtocolStateSnapshot,
+      Flow_Access_AccessAPIServerMetadata.Methods.getExecutionResultForBlockID,
+    ]
+  )
+
+  internal enum Methods {
+    internal static let ping = GRPCMethodDescriptor(
+      name: "Ping",
+      path: "/flow.access.AccessAPI/Ping",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getLatestBlockHeader = GRPCMethodDescriptor(
+      name: "GetLatestBlockHeader",
+      path: "/flow.access.AccessAPI/GetLatestBlockHeader",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getBlockHeaderByID = GRPCMethodDescriptor(
+      name: "GetBlockHeaderByID",
+      path: "/flow.access.AccessAPI/GetBlockHeaderByID",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getBlockHeaderByHeight = GRPCMethodDescriptor(
+      name: "GetBlockHeaderByHeight",
+      path: "/flow.access.AccessAPI/GetBlockHeaderByHeight",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getLatestBlock = GRPCMethodDescriptor(
+      name: "GetLatestBlock",
+      path: "/flow.access.AccessAPI/GetLatestBlock",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getBlockByID = GRPCMethodDescriptor(
+      name: "GetBlockByID",
+      path: "/flow.access.AccessAPI/GetBlockByID",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getBlockByHeight = GRPCMethodDescriptor(
+      name: "GetBlockByHeight",
+      path: "/flow.access.AccessAPI/GetBlockByHeight",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getCollectionByID = GRPCMethodDescriptor(
+      name: "GetCollectionByID",
+      path: "/flow.access.AccessAPI/GetCollectionByID",
+      type: GRPCCallType.unary
+    )
+
+    internal static let sendTransaction = GRPCMethodDescriptor(
+      name: "SendTransaction",
+      path: "/flow.access.AccessAPI/SendTransaction",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getTransaction = GRPCMethodDescriptor(
+      name: "GetTransaction",
+      path: "/flow.access.AccessAPI/GetTransaction",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getTransactionResult = GRPCMethodDescriptor(
+      name: "GetTransactionResult",
+      path: "/flow.access.AccessAPI/GetTransactionResult",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getTransactionResultByIndex = GRPCMethodDescriptor(
+      name: "GetTransactionResultByIndex",
+      path: "/flow.access.AccessAPI/GetTransactionResultByIndex",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getTransactionResultsByBlockID = GRPCMethodDescriptor(
+      name: "GetTransactionResultsByBlockID",
+      path: "/flow.access.AccessAPI/GetTransactionResultsByBlockID",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getTransactionsByBlockID = GRPCMethodDescriptor(
+      name: "GetTransactionsByBlockID",
+      path: "/flow.access.AccessAPI/GetTransactionsByBlockID",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getAccount = GRPCMethodDescriptor(
+      name: "GetAccount",
+      path: "/flow.access.AccessAPI/GetAccount",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getAccountAtLatestBlock = GRPCMethodDescriptor(
+      name: "GetAccountAtLatestBlock",
+      path: "/flow.access.AccessAPI/GetAccountAtLatestBlock",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getAccountAtBlockHeight = GRPCMethodDescriptor(
+      name: "GetAccountAtBlockHeight",
+      path: "/flow.access.AccessAPI/GetAccountAtBlockHeight",
+      type: GRPCCallType.unary
+    )
+
+    internal static let executeScriptAtLatestBlock = GRPCMethodDescriptor(
+      name: "ExecuteScriptAtLatestBlock",
+      path: "/flow.access.AccessAPI/ExecuteScriptAtLatestBlock",
+      type: GRPCCallType.unary
+    )
+
+    internal static let executeScriptAtBlockID = GRPCMethodDescriptor(
+      name: "ExecuteScriptAtBlockID",
+      path: "/flow.access.AccessAPI/ExecuteScriptAtBlockID",
+      type: GRPCCallType.unary
+    )
+
+    internal static let executeScriptAtBlockHeight = GRPCMethodDescriptor(
+      name: "ExecuteScriptAtBlockHeight",
+      path: "/flow.access.AccessAPI/ExecuteScriptAtBlockHeight",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getEventsForHeightRange = GRPCMethodDescriptor(
+      name: "GetEventsForHeightRange",
+      path: "/flow.access.AccessAPI/GetEventsForHeightRange",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getEventsForBlockIDs = GRPCMethodDescriptor(
+      name: "GetEventsForBlockIDs",
+      path: "/flow.access.AccessAPI/GetEventsForBlockIDs",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getNetworkParameters = GRPCMethodDescriptor(
+      name: "GetNetworkParameters",
+      path: "/flow.access.AccessAPI/GetNetworkParameters",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getLatestProtocolStateSnapshot = GRPCMethodDescriptor(
+      name: "GetLatestProtocolStateSnapshot",
+      path: "/flow.access.AccessAPI/GetLatestProtocolStateSnapshot",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getExecutionResultForBlockID = GRPCMethodDescriptor(
+      name: "GetExecutionResultForBlockID",
+      path: "/flow.access.AccessAPI/GetExecutionResultForBlockID",
+      type: GRPCCallType.unary
+    )
+  }
+}

@@ -7,9 +7,6 @@
 
 import Foundation
 import Cadence
-#if !COCOAPODS
-import Protobuf
-#endif
 
 public struct Event: Equatable {
     /// The qualified event type.

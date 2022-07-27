@@ -6,9 +6,6 @@
 //
 
 import Foundation
-#if !COCOAPODS
-import Protobuf
-#endif
 
 public struct ExecutionResult: Equatable {
 
