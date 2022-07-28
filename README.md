@@ -82,17 +82,17 @@ transaction(publicKey: PublicKey, hashAlgorithm: HashAlgorithm, weight: UFix64) 
 """
 
 // Get service account info
-let (payerAccount, payerAccountKey, payerSigner) = try serviceAccount(client: client)
+let (payerAccount, payerAccountKey, payerSigner) = try await serviceAccount(client: client)
 
 // Get latest reference block id
-let referenceBlockId = try client.getLatestBlock(isSealed: true).wait()?.id
+let referenceBlockId = try await client.getLatestBlock(isSealed: true)?.id
 
 // Define creating account transaction
 var transaction = try Transaction(
     script: script.data(using: .utf8)!,
     arguments: [
-        publicKey.cadenceValue,
-        HashAlgorithm.sha3_256.cadenceValue,
+        publicKey.cadenceArugment,
+        HashAlgorithm.sha3_256.cadenceArugment,
         .ufix64(1000)
     ],
     referenceBlockId: referenceBlockId!,
@@ -111,19 +111,19 @@ try transaction.signEnvelope(
     signer: payerSigner)
 
 // Send out transaction
-let txId = try client.sendTransaction(transaction: transaction).wait()
+let txId = try await client.sendTransaction(transaction: transaction)
 
 // Get transaction result
 var result: TransactionResult?
 while result?.status != .sealed  {
-    result = try client.getTransactionResult(id: txId).wait()
+    result = try await client.getTransactionResult(id: txId)
     sleep(3)
 }
 debugPrint(result)
 
-private func serviceAccount(client: Client) throws -> (account: Account, accountKey: AccountKey, signer: InMemorySigner) {
+private func serviceAccount(client: Client) async throws -> (account: Account, accountKey: AccountKey, signer: InMemorySigner) {
     let serviceAddress = Address(hexString: "f8d6e0586b0a20c7")
-    let serviceAccount = try client.getAccountAtLatestBlock(address: serviceAddress).wait()!
+    let serviceAccount = try await client.getAccountAtLatestBlock(address: serviceAddress)!
     let servicePrivateKey = try PrivateKey(
         data: Data(hex: "7aac2988c5c3df3325d8cd679563cc974271f9505245da53e887fa3cc36c064f"),
         signatureAlgorithm: .ecdsaP256)
@@ -149,7 +149,7 @@ let myPrivateKey: PrivateKey
 let client = Client(network: .emulator)
 
 // Get latest reference block id
-let referenceBlockId = try client.getLatestBlock(isSealed: true).wait()!.id
+let referenceBlockId = try await client.getLatestBlock(isSealed: true)!.id
 
 var transaction = Transaction(
     script: "transaction { execute { log(\"Hello, World!\") } }".data(using: .utf8)!,
@@ -188,9 +188,13 @@ Flow introduces new concepts that allow for more flexibility when creating and s
 ```swift
 let client = Client(network: .emulator)
 
-let referenceBlockId = try client.getLatestBlock(isSealed: true).wait()!.id
+guard let referenceBlockId = try await client.getLatestBlock(isSealed: true)?.id else {
+    return
+}
 
-let account1 = try client.getAccountAtLatestBlock(address: Address(hexString: "01")).wait()!
+guard let account1 = try await client.getAccountAtLatestBlock(address: Address(hexString: "01")) else {
+    return
+}
 let key1 = account1.keys[0]
 
 // create signer from securely-stored private key
@@ -229,9 +233,13 @@ try transaction.signEnvelope(address: account1.address, keyIndex: key1.index, si
 ```swift
 let client = Client(network: .emulator)
 
-let referenceBlockId = try client.getLatestBlock(isSealed: true).wait()!.id
+guard let referenceBlockId = try await client.getLatestBlock(isSealed: true)?.id else {
+    return
+}
 
-let account1 = try client.getAccountAtLatestBlock(address: Address(hexString: "01")).wait()!
+guard let account1 = try await client.getAccountAtLatestBlock(address: Address(hexString: "01")) else {
+    return
+}
 let key1 = account1.keys[0]
 let key2 = account1.keys[1]
 
@@ -277,10 +285,16 @@ try transaction.signEnvelope(address: account1.address, keyIndex: key2.index, si
 ```swift
 let client = Client(network: .emulator)
 
-let referenceBlockId = try client.getLatestBlock(isSealed: true).wait()!.id
+guard let referenceBlockId = try await client.getLatestBlock(isSealed: true)?.id else {
+    return
+}
 
-let account1 = try client.getAccountAtLatestBlock(address: Address(hexString: "01")).wait()!
-let account2 = try client.getAccountAtLatestBlock(address: Address(hexString: "02")).wait()!
+guard let account1 = try await client.getAccountAtLatestBlock(address: Address(hexString: "01")) else {
+    return
+}
+guard let account2 = try await client.getAccountAtLatestBlock(address: Address(hexString: "02")) else {
+    return
+}
 let key1 = account1.keys[0]
 let key3 = account2.keys[0]
 
@@ -327,10 +341,16 @@ try transaction.signEnvelope(address: account2.address, keyIndex: key3.index, si
 ```swift
 let client = Client(network: .emulator)
 
-let referenceBlockId = try client.getLatestBlock(isSealed: true).wait()!.id
+guard let referenceBlockId = try await client.getLatestBlock(isSealed: true)?.id else {
+    return
+}
 
-let account1 = try client.getAccountAtLatestBlock(address: Address(hexString: "01")).wait()!
-let account2 = try client.getAccountAtLatestBlock(address: Address(hexString: "02")).wait()!
+guard let account1 = try await client.getAccountAtLatestBlock(address: Address(hexString: "01")) else {
+    return
+}
+guard let account2 = try await client.getAccountAtLatestBlock(address: Address(hexString: "02")) else {
+    return
+}
 let key1 = account1.keys[0]
 let key3 = account2.keys[0]
 
@@ -383,10 +403,16 @@ try transaction.signEnvelope(address: account2.address, keyIndex: key3.index, si
 ```swift
 let client = Client(network: .emulator)
 
-let referenceBlockId = try client.getLatestBlock(isSealed: true).wait()!.id
+guard let referenceBlockId = try await client.getLatestBlock(isSealed: true)?.id else {
+    return
+}
 
-let account1 = try client.getAccountAtLatestBlock(address: Address(hexString: "01")).wait()!
-let account2 = try client.getAccountAtLatestBlock(address: Address(hexString: "02")).wait()!
+guard let account1 = try await client.getAccountAtLatestBlock(address: Address(hexString: "01")) else {
+    return
+}
+guard let account2 = try await client.getAccountAtLatestBlock(address: Address(hexString: "02")) else {
+    return
+}
 let key1 = account1.keys[0]
 let key2 = account1.keys[1]
 let key3 = account2.keys[0]
@@ -438,13 +464,13 @@ let client = Client(host: "localhost", port: 3569)
 // or
 // let client = Client(network: .emulator)
 
-try client.sendTransaction(transaction: transaction).wait()
+try await client.sendTransaction(transaction: transaction)
 ```
 
 ## Querying Transaction Results
 After you have submitted a transaction, you can query its status by transaction ID:
 ```swift
-let result = try client.getTransactionResult(id: txId).wait()
+let result = try await client.getTransactionResult(id: txId)
 ```
 
 `result.status` will be one of the following values:
@@ -479,7 +505,7 @@ pub fun main(): UInt64 {
 }
 """
 
-let cadenceValue: Cadence.Value = try client.executeScriptAtLatestBlock(script: script.data(using: .utf8)!).wait()
+let cadenceValue: Cadence.Value = try await client.executeScriptAtLatestBlock(script: script.data(using: .utf8)!)
 let value: UInt64 = try cadenceValue.toSwiftValue()
 ```
 
@@ -493,7 +519,7 @@ import FlowSDK
 let client = Client(network: .testnet)
 
 let isSealed: Bool = true
-let block = try client.getLatestBlock(isSealed: isSealed).wait()
+let block = try await client.getLatestBlock(isSealed: isSealed)
 ```
 
 Block contains BlockHeader and BlockPayload. BlockHeader contains the following fields:
@@ -515,10 +541,10 @@ import FlowSDK
 
 let client = Client(network: .testnet)
 
-let events: [BlockEvents] = try client.getEventsForHeightRange(
+let events: [BlockEvents] = try await client.getEventsForHeightRange(
     eventType: "flow.AccountCreated",
     startHeight: 10,
-    endHeight: 15).wait()
+    endHeight: 15)
 ```
 
 ### Event Type
@@ -539,7 +565,7 @@ You can use getAccountAtLatestBlock to query the state of an account.
 let client = Client(network: .testnet)
 
 let address = Address(hexString: "0xcb2d04fc89307107")
-let account = try client.getAccountAtLatestBlock(address: address).wait()
+let account = try await client.getAccountAtLatestBlock(address: address)
 ```
 
 An `Account` contains the following fields:
@@ -548,9 +574,9 @@ An `Account` contains the following fields:
 - keys: a list of the public keys associated with this account.
 - contracts: the contract code deployed at this account.
 
-# Example
+# Examples
 
-// TODO: add a demo example
+Check out [example](./example/) that how to use the SDK to interact wit Flow blockchain.
 
 # Development
 
