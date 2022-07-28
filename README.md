@@ -1,6 +1,6 @@
 ![Flow Swift SDK](./images/logo.jpg)
 
-<a href="https://github.com/portto/flow-swift-sdk/actions/workflows/swiftpm.yml?query=workflow%3Atest"><img src="https://github.com/portto/flow-swift-sdk/actions/workflows/swiftpm.yml/badge.svg?branch=main">
+<a href="https://dl.circleci.com/status-badge/redirect/gh/portto/flow-swift-sdk/tree/main"><img src="https://dl.circleci.com/status-badge/img/gh/portto/flow-swift-sdk/tree/main.svg?style=svg"></a>
 <a href="https://cocoapods.org/pods/FlowSDK"><img src="https://img.shields.io/cocoapods/v/FlowSDK.svg?style=flat"></a>
 <a href="https://swift.org/package-manager/"><img src="https://img.shields.io/badge/SPM-supported-DE5C43.svg?style=flat"></a>
 
@@ -591,4 +591,4 @@ make generate-protobuf
 
 # License
 
-Flow Swift SDK is available under the Apache 2.0 license. See the LICENSE file for more info.
+Flow Swift SDK is available under the Apache 2.0 license. Same with [gRPC-Swift](https://github.com/grpc/grpc-swift).
