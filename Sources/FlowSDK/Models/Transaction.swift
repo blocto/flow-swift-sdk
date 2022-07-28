@@ -94,7 +94,7 @@ public struct Transaction: Equatable {
 
     public init(
         script: Data,
-        arguments: [Cadence.Value],
+        arguments: [Cadence.Argument],
         referenceBlockId: Identifier,
         gasLimit: UInt64 = 9999,
         proposalKey: ProposalKey,
@@ -141,12 +141,12 @@ public struct Transaction: Equatable {
         }
     }
 
-    public func getArugment(at index: Int) throws -> Cadence.Value {
-        return try JSONDecoder().decode(Cadence.Value.self, from: arguments[index])
+    public func getArugment(at index: Int) throws -> Cadence.Argument {
+        return try JSONDecoder().decode(Cadence.Argument.self, from: arguments[index])
     }
 
     /// Adds a Cadence argument to this transaction.
-    public mutating func addArgument(value: Cadence.Value) throws {
+    public mutating func addArgument(value: Cadence.Argument) throws {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .withoutEscapingSlashes
         let data = try encoder.encode(value)

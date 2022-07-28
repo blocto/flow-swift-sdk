@@ -10,26 +10,26 @@ import Cadence
 
 public extension PublicKey {
 
-    var cadenceValue: Cadence.Value {
-        .struct(.init(
+    var cadenceArugment: Cadence.Argument {
+        .struct(
             id: "PublicKey",
             fields: [
                 .init(
                     name: "publicKey",
-                    value: .array(data.map { .uint8($0) })
+                    value: .array(data.map { .uint8($0) }) 
                 ),
                 .init(
                     name: "signatureAlgorithm",
-                    value: .enum(.init(
+                    value: .enum(
                         id: "SignatureAlgorithm",
                         fields: [
                             .init(
                                 name: "rawValue",
                                 value: .uint8(algorithm.cadenceRawValue))
-                        ])
+                        ]
                     )
                 ),
             ]
-        ))
+        )
     }
 }

@@ -11,7 +11,7 @@ import Combine
 
 public enum Value: Equatable {
     case void
-    indirect case optional(Value?)
+    indirect case optional(Argument?)
     case bool(Bool)
     case string(String)
     case address(Address)
@@ -35,7 +35,7 @@ public enum Value: Equatable {
     case word64(UInt64)
     case fix64(Decimal)
     case ufix64(Decimal)
-    indirect case array([Value])
+    indirect case array([Argument])
     indirect case dictionary([Dictionary])
     indirect case `struct`(CompositeStruct)
     indirect case resource(CompositeResource)
@@ -87,168 +87,86 @@ public enum Value: Equatable {
     }
 }
 
-// MARK: - Codable
+// MARK: - Encodable
 
-extension Value: Codable {
-
-    enum CodingKeys: CodingKey {
-        case type
-        case value
-    }
+extension Value: Encodable {
 
     public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(type, forKey: .type)
+        var container = encoder.singleValueContainer()
         switch self {
         case .void:
             break
         case let .optional(value):
-            try container.encode(value, forKey: .value)
+            try container.encode(value)
         case let .bool(bool):
-            try container.encode(bool, forKey: .value)
+            try container.encode(bool)
         case let .string(string):
-            try container.encode(string, forKey: .value)
+            try container.encode(string)
         case let .address(address):
-            try container.encode(address, forKey: .value)
+            try container.encode(address)
         case let .int(int):
-            try container.encode(String(int), forKey: .value)
+            try container.encode(String(int))
         case let .uint(uint):
-            try container.encode(String(uint), forKey: .value)
+            try container.encode(String(uint))
         case let .int8(int8):
-            try container.encode(String(int8), forKey: .value)
+            try container.encode(String(int8))
         case let .uint8(uint8):
-            try container.encode(String(uint8), forKey: .value)
+            try container.encode(String(uint8))
         case let .int16(int16):
-            try container.encode(String(int16), forKey: .value)
+            try container.encode(String(int16))
         case let .uint16(uint16):
-            try container.encode(String(uint16), forKey: .value)
+            try container.encode(String(uint16))
         case let .int32(int32):
-            try container.encode(String(int32), forKey: .value)
+            try container.encode(String(int32))
         case let .uint32(uint32):
-            try container.encode(String(uint32), forKey: .value)
+            try container.encode(String(uint32))
         case let .int64(int64):
-            try container.encode(String(int64), forKey: .value)
+            try container.encode(String(int64))
         case let .uint64(uint64):
-            try container.encode(String(uint64), forKey: .value)
+            try container.encode(String(uint64))
         case let .int128(int128):
-            try container.encode(int128.description, forKey: .value)
+            try container.encode(int128.description)
         case let .uint128(uint128):
-            try container.encode(uint128.description, forKey: .value)
+            try container.encode(uint128.description)
         case let .int256(int256):
-            try container.encode(int256.description, forKey: .value)
+            try container.encode(int256.description)
         case let .uint256(uint256):
-            try container.encode(uint256.description, forKey: .value)
+            try container.encode(uint256.description)
         case let .word8(word8):
-            try container.encode(String(word8), forKey: .value)
+            try container.encode(String(word8))
         case let .word16(word16):
-            try container.encode(String(word16), forKey: .value)
+            try container.encode(String(word16))
         case let .word32(word32):
-            try container.encode(String(word32), forKey: .value)
+            try container.encode(String(word32))
         case let .word64(word64):
-            try container.encode(String(word64), forKey: .value)
+            try container.encode(String(word64))
         case let .fix64(fix64):
-            try container.encode(fix64.description.addingZeroDecimalIfNeeded, forKey: .value)
+            try container.encode(fix64.description.addingZeroDecimalIfNeeded)
         case let .ufix64(ufix64):
-            try container.encode(ufix64.description.addingZeroDecimalIfNeeded, forKey: .value)
+            try container.encode(ufix64.description.addingZeroDecimalIfNeeded)
         case let .array(array):
-            try container.encode(array, forKey: .value)
+            try container.encode(array)
         case let .dictionary(dictionary):
-            try container.encode(dictionary, forKey: .value)
+            try container.encode(dictionary)
         case let .struct(`struct`):
-            try container.encode(`struct`, forKey: .value)
+            try container.encode(`struct`)
         case let .resource(resource):
-            try container.encode(resource, forKey: .value)
+            try container.encode(resource)
         case let .event(event):
-            try container.encode(event, forKey: .value)
+            try container.encode(event)
         case let .contract(contract):
-            try container.encode(contract, forKey: .value)
+            try container.encode(contract)
         case let .enum(`enum`):
-            try container.encode(`enum`, forKey: .value)
+            try container.encode(`enum`)
         case let .path(path):
-            try container.encode(path, forKey: .value)
+            try container.encode(path)
         case let .type(type):
-            try container.encode(type, forKey: .value)
+            try container.encode(type)
         case let .capability(capability):
-            try container.encode(capability, forKey: .value)
+            try container.encode(capability)
         }
     }
 
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let type = try container.decode(ValueType.self, forKey: .type)
-        switch type {
-        case .void:
-            self = .void
-        case .optional:
-            self = .optional(try container.decodeIfPresent(Value.self, forKey: .value))
-        case .bool:
-            self = .bool(try container.decode(Bool.self, forKey: .value))
-        case .string:
-            self = .string(try container.decode(String.self, forKey: .value))
-        case .address:
-            self = .address(try container.decode(Address.self, forKey: .value))
-        case .int:
-            self = .int(try container.decodeBigIntFromString(forKey: .value))
-        case .uint:
-            self = .uint(try container.decodeBigUIntFromString(forKey: .value))
-        case .int8:
-            self = .int8(try container.decodeStringInteger(Int8.self, forKey: .value))
-        case .uint8:
-            self = .uint8(try container.decodeStringInteger(UInt8.self, forKey: .value))
-        case .int16:
-            self = .int16(try container.decodeStringInteger(Int16.self, forKey: .value))
-        case .uint16:
-            self = .uint16(try container.decodeStringInteger(UInt16.self, forKey: .value))
-        case .int32:
-            self = .int32(try container.decodeStringInteger(Int32.self, forKey: .value))
-        case .uint32:
-            self = .uint32(try container.decodeStringInteger(UInt32.self, forKey: .value))
-        case .int64:
-            self = .int64(try container.decodeStringInteger(Int64.self, forKey: .value))
-        case .uint64:
-            self = .uint64(try container.decodeStringInteger(UInt64.self, forKey: .value))
-        case .int128:
-            self = .int128(try container.decodeBigIntFromString(forKey: .value))
-        case .uint128:
-            self = .uint128(try container.decodeBigUIntFromString(forKey: .value))
-        case .int256:
-            self = .int256(try container.decodeBigIntFromString(forKey: .value))
-        case .uint256:
-            self = .uint256(try container.decodeBigUIntFromString(forKey: .value))
-        case .word8:
-            self = .word8(try container.decodeStringInteger(UInt8.self, forKey: .value))
-        case .word16:
-            self = .word16(try container.decodeStringInteger(UInt16.self, forKey: .value))
-        case .word32:
-            self = .word32(try container.decodeStringInteger(UInt32.self, forKey: .value))
-        case .word64:
-            self = .word64(try container.decodeStringInteger(UInt64.self, forKey: .value))
-        case .fix64:
-            self = .fix64(try container.decodeDecimalFromString(forKey: .value))
-        case .ufix64:
-            self = .ufix64(try container.decodeDecimalFromString(forKey: .value))
-        case .array:
-            self = .array(try container.decode([Value].self, forKey: .value))
-        case .dictionary:
-            self = .dictionary(try container.decode([Dictionary].self, forKey: .value))
-        case .struct:
-            self = .`struct`(try container.decode(CompositeStruct.self, forKey: .value))
-        case .resource:
-            self = .resource(try container.decode(CompositeResource.self, forKey: .value))
-        case .event:
-            self = .event(try container.decode(CompositeEvent.self, forKey: .value))
-        case .contract:
-            self = .contract(try container.decode(CompositeContract.self, forKey: .value))
-        case .enum:
-            self = .enum(try container.decode(CompositeEnum.self, forKey: .value))
-        case .path:
-            self = .path(try container.decode(Path.self, forKey: .value))
-        case .type:
-            self = .type(try container.decode(StaticTypeValue.self, forKey: .value))
-        case .capability:
-            self = .capability(try container.decode(Capability.self, forKey: .value))
-        }
-    }
 }
 
 // MARK: - To Swift Value
@@ -303,7 +221,7 @@ extension Value {
         case .void:
             return nil
         case let .optional(value):
-            return try value?.toSwiftRawValue()
+            return try value?.value.toSwiftRawValue()
         case let .bool(bool):
             return bool
         case let .string(string):
@@ -351,7 +269,7 @@ extension Value {
         case let .ufix64(decimal):
             return decimal
         case let .array(array):
-            return try array.map { try $0.toSwiftRawValue() }
+            return try array.map { try $0.value.toSwiftRawValue() }
         case let .dictionary(dictionary):
             guard let firstElement = dictionary.first else {
                 return [:]
@@ -444,10 +362,10 @@ extension Value {
     ) throws -> [KeyType: Any] {
         var result: [KeyType: Any] = [:]
         try dictionary.forEach {
-            guard let key = try $0.key.toSwiftRawValue() as? KeyType else {
+            guard let key = try $0.key.value.toSwiftRawValue() as? KeyType else {
                 throw ValueDecodingError.inconsistentDictionaryKeyType
             }
-            let value = try $0.value.toSwiftRawValue()
+            let value = try $0.value.value.toSwiftRawValue()
             result[key] = value
         }
         return result
@@ -456,7 +374,7 @@ extension Value {
     private func convertCompositeToDictionary(_ composite: Composite) throws -> [String: Any?] {
         var result: [String: Any] = [:]
         try composite.fields.forEach {
-            let value = try $0.value.toSwiftRawValue()
+            let value = try $0.value.value.toSwiftRawValue()
             if let bigInt = value as? BigInt {
                 result[$0.name] = bigInt.description
             } else if let bigUInt = value as? BigUInt {
@@ -482,17 +400,6 @@ private extension Encodable {
     }
 }
 
-// MARK: - Static Function
-
-extension Value {
-
-    public static func decode(data: Data) throws -> Self {
-        let decoder = JSONDecoder()
-        decoder.userInfo[.decodingResults] = FTypeDecodingResults()
-        return try decoder.decode(Self.self, from: data)
-    }
-}
-
 // MARK: - CustomStringConvertible
 
 extension Value: CustomStringConvertible {
@@ -503,7 +410,7 @@ extension Value: CustomStringConvertible {
             return Format.void.description
         case let .optional(value):
             if let value = value {
-                return value.description
+                return value.value.description
             } else {
                 return Format.nil.description
             }
@@ -554,36 +461,36 @@ extension Value: CustomStringConvertible {
         case let .ufix64(decimal):
             return Format.decimal(decimal).description
         case let .array(array):
-            return Format.array(array.map { $0.description }).description
+            return Format.array(array.map { $0.value.description }).description
         case let .dictionary(array):
-            let pairs = array.map { (key: $0.key.description, value: $0.value.description) }
+            let pairs = array.map { (key: $0.key.value.description, value: $0.value.value.description) }
             return Format.dictionary(pairs).description
         case let .struct(compositeStruct):
-            let pairs = compositeStruct.fields.map { (name: $0.name, value: $0.value.description) }
+            let pairs = compositeStruct.fields.map { (name: $0.name, value: $0.value.value.description) }
             return Format.composite(
                 typeId: compositeStruct.id,
                 fields: pairs
             ).description
         case let .resource(compositeResource):
-            let pairs = compositeResource.fields.map { (name: $0.name, value: $0.value.description) }
+            let pairs = compositeResource.fields.map { (name: $0.name, value: $0.value.value.description) }
             return Format.composite(
                 typeId: compositeResource.id,
                 fields: pairs
             ).description
         case let .event(compositeEvent):
-            let pairs = compositeEvent.fields.map { (name: $0.name, value: $0.value.description) }
+            let pairs = compositeEvent.fields.map { (name: $0.name, value: $0.value.value.description) }
             return Format.composite(
                 typeId: compositeEvent.id,
                 fields: pairs
             ).description
         case let .contract(compositeContract):
-            let pairs = compositeContract.fields.map { (name: $0.name, value: $0.value.description) }
+            let pairs = compositeContract.fields.map { (name: $0.name, value: $0.value.value.description) }
             return Format.composite(
                 typeId: compositeContract.id,
                 fields: pairs
             ).description
         case let .enum(compositeEnum):
-            let pairs = compositeEnum.fields.map { (name: $0.name, value: $0.value.description) }
+            let pairs = compositeEnum.fields.map { (name: $0.name, value: $0.value.value.description) }
             return Format.composite(
                 typeId: compositeEnum.id,
                 fields: pairs

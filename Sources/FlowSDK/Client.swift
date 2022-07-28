@@ -211,9 +211,9 @@ final public class Client {
     /// Executes a read-only Cadence script against the latest sealed execution state.
     public func executeScriptAtLatestBlock(
         script: Data,
-        arguments: [Cadence.Value] = [],
+        arguments: [Cadence.Argument] = [],
         options: CallOptions? = nil
-    ) async throws -> Cadence.Value {
+    ) async throws -> Cadence.Argument {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .withoutEscapingSlashes
         let request = try Flow_Access_ExecuteScriptAtLatestBlockRequest.with {
@@ -221,16 +221,16 @@ final public class Client {
             $0.arguments = try arguments.map { try encoder.encode($0) }
         }
         let response = try await accessAPIClient.executeScriptAtLatestBlock(request, callOptions: options)
-        return try Cadence.Value.decode(data: response.value)
+        return try Cadence.Argument.decode(data: response.value)
     }
 
     /// Executes a ready-only Cadence script against the execution state at the block with the given ID.
     public func executeScriptAtBlockID(
         blockId: Identifier,
         script: Data,
-        arguments: [Cadence.Value],
+        arguments: [Cadence.Argument],
         options: CallOptions? = nil
-    ) async throws -> Cadence.Value {
+    ) async throws -> Cadence.Argument {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .withoutEscapingSlashes
         let request = try Flow_Access_ExecuteScriptAtBlockIDRequest.with {
@@ -239,16 +239,16 @@ final public class Client {
             $0.arguments = try arguments.map { try encoder.encode($0) }
         }
         let response = try await accessAPIClient.executeScriptAtBlockID(request, callOptions: options)
-        return try Cadence.Value.decode(data: response.value)
+        return try Cadence.Argument.decode(data: response.value)
     }
 
     /// Executes a ready-only Cadence script against the execution state at the given block height.
     public func executeScriptAtBlockHeight(
         height: UInt64,
         script: Data,
-        arguments: [Cadence.Value],
+        arguments: [Cadence.Argument],
         options: CallOptions? = nil
-    ) async throws -> Cadence.Value {
+    ) async throws -> Cadence.Argument {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .withoutEscapingSlashes
         let request = try Flow_Access_ExecuteScriptAtBlockHeightRequest.with {
@@ -257,7 +257,7 @@ final public class Client {
             $0.arguments = try arguments.map { try encoder.encode($0) }
         }
         let response = try await accessAPIClient.executeScriptAtBlockHeight(request, callOptions: options)
-        return try Cadence.Value.decode(data: response.value)
+        return try Cadence.Argument.decode(data: response.value)
     }
 
     /// Retrieves events for all sealed blocks between the start and end block heights (inclusive) with the given type.

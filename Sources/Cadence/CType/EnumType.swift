@@ -45,7 +45,7 @@ public class EnumType: Codable {
 
     public func decodePossibleRepeatedProperties(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        type = try container.decodeCType(userInfo: decoder.userInfo, forKey: .type)
+        type = try container.decodeFType(userInfo: decoder.userInfo, forKey: .type)
         initializers = try container.decode([InitializerType].self, forKey: .initializers)
         fields = try container.decode([FieldType].self, forKey: .fields)
     }

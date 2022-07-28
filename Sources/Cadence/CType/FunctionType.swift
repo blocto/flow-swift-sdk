@@ -40,7 +40,7 @@ public class FunctionType: Codable {
     public func decodePossibleRepeatedProperties(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         parameters = try container.decode([ParameterType].self, forKey: .parameters)
-        `return` = try container.decodeCType(userInfo: decoder.userInfo, forKey: .return)
+        `return` = try container.decodeFType(userInfo: decoder.userInfo, forKey: .return)
     }
 }
 

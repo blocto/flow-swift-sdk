@@ -10,10 +10,10 @@ import Foundation
 /// https://docs.onflow.org/cadence/json-cadence-spec/#dictionary
 public struct Dictionary: Codable, Equatable {
 
-    public let key: Value
-    public let value: Value
+    public let key: Argument
+    public let value: Argument
 
-    public init(key: Value, value: Value) {
+    public init(key: Argument, value: Argument) {
         self.key = key
         self.value = value
     }

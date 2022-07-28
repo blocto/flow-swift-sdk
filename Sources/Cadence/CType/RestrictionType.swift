@@ -39,7 +39,7 @@ public class RestrictionType: Codable {
 
     public func decodePossibleRepeatedProperties(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        type = try container.decodeCType(userInfo: decoder.userInfo, forKey: .type)
+        type = try container.decodeFType(userInfo: decoder.userInfo, forKey: .type)
         restrictions = try container.decode([FType].self, forKey: .restrictions)
     }
 }

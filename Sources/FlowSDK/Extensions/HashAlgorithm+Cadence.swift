@@ -10,17 +10,15 @@ import Cadence
 
 public extension HashAlgorithm {
 
-    var cadenceValue: Cadence.Value {
+    var cadenceArugment: Cadence.Argument {
         .enum(
-            .init(
-                id: "HashAlgorithm",
-                fields: [
-                    .init(
-                        name: "rawValue",
-                        value: .uint8(cadenceRawValue)
-                    )
-                ]
-            )
+            id: "HashAlgorithm",
+            fields: [
+                .init(
+                    name: "rawValue",
+                    value: .uint8(cadenceRawValue)
+                )
+            ]
         )
     }
 

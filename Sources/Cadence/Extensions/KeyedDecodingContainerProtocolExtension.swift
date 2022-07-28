@@ -9,6 +9,7 @@ import Foundation
 import BigInt
 
 // MARK: - BigInt, BigUInt
+
 extension KeyedDecodingContainerProtocol {
 
     func decodeBigIntFromString(forKey key: Self.Key) throws -> BigInt {
@@ -28,7 +29,7 @@ extension KeyedDecodingContainerProtocol {
             throw DecodingError.dataCorruptedError(
                 forKey: key,
                 in: self,
-                debugDescription: "Expected BigInt string")
+                debugDescription: "Expected BigUInt string")
         }
         return bigUInt
     }
@@ -36,6 +37,7 @@ extension KeyedDecodingContainerProtocol {
 }
 
 // MARK: - Decimal
+
 extension KeyedDecodingContainerProtocol {
 
     func decodeDecimalFromString(forKey key: Self.Key) throws -> Decimal {
@@ -69,11 +71,11 @@ extension KeyedDecodingContainerProtocol {
     }
 }
 
-// MARK: CType
+// MARK: FType
 
 extension KeyedDecodingContainerProtocol {
 
-    func decodeCType(
+    func decodeFType(
         userInfo: [CodingUserInfoKey: Any],
         forKey key: Self.Key
     ) throws -> FType {

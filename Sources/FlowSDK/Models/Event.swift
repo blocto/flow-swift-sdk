@@ -50,10 +50,10 @@ public struct Event: Equatable {
         self.eventIndex = Int(value.eventIndex)
         self.payload = value.payload
 
-        if case let .event(event) = try Cadence.Value.decode(data: value.payload) {
+        if case let .event(event) = try Cadence.Argument.decode(data: value.payload).value {
             self.value = event
         } else {
-            throw Error.notEventValue
+            throw Error.notEventArgument
         }
     }
 }
@@ -62,6 +62,6 @@ public struct Event: Equatable {
 extension Event {
 
     public enum Error: Swift.Error {
-        case notEventValue
+        case notEventArgument
     }
 }

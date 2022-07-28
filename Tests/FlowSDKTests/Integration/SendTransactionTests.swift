@@ -44,8 +44,8 @@ final class SendTransactionTests: XCTestCase {
         var transaction = try Transaction(
             script: try Utils.getTestData(name: "createAccount.cdc"),
             arguments: [
-                userAccountKey.publicKey.cadenceValue,
-                userAccountKey.hashAlgorithm.cadenceValue,
+                userAccountKey.publicKey.cadenceArugment,
+                userAccountKey.hashAlgorithm.cadenceArugment,
                 .ufix64(Decimal(userAccountKey.weight)),
             ],
             referenceBlockId: referenceBlock.blockHeader.id,

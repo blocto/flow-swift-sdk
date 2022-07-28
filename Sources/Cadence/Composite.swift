@@ -30,9 +30,9 @@ extension Composite {
 
     public struct Field: Codable, Equatable {
         public let name: String
-        public let value: Value
+        public let value: Argument
 
-        public init(name: String, value: Value) {
+        public init(name: String, value: Argument) {
             self.name = name
             self.value = value
         }

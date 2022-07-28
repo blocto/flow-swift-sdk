@@ -432,13 +432,13 @@ final class ClientTests: XCTestCase {
                 .uint32(1),
                 .string("mock"),
                 .string("Syed Taha"),
-                .array([
+                .array(
                     .string("SAUDI_ARABIA")
-                ]),
-                .array([
+                ),
+                .array(
                     .string("CAM"),
                     .string("CM")
-                ]),
+                ),
                 .string("RIGHT"),
                 .uint32(19),
                 .uint32(182),
@@ -837,7 +837,7 @@ final class ClientTests: XCTestCase {
 
     func testExecuteScriptAtLatestBlock() async throws {
         // Arrange
-        let arguments: [Cadence.Value] = [.address(Address(hexString: "0x76d6c5f3189b2b3e"))]
+        let arguments: [Cadence.Argument] = [.address(Address(hexString: "0x76d6c5f3189b2b3e"))]
         let value = "{\"type\":\"UFix64\",\"value\":\"999.71164129\"}\n"
         let response = Flow_Access_ExecuteScriptResponse.with {
             $0.value = value.data(using: .utf8)!
@@ -851,14 +851,14 @@ final class ClientTests: XCTestCase {
 
         // Assert
         XCTAssertFalse(provider.hasExecuteScriptAtLatestBlockResponsesRemaining)
-        let expected = Cadence.Value.ufix64(Decimal(string: "999.71164129")!)
+        let expected = Cadence.Argument.ufix64(Decimal(string: "999.71164129")!)
         XCTAssertEqual(result, expected)
     }
 
     func testExecuteScriptAtBlockID() async throws {
         // Arrange
         let id = Identifier(hexString: "243263c9db22d59b4d1e835e9b38fc8eca89d47cebf1e06c885fab4c28a72f9e")
-        let arguments: [Cadence.Value] = [.address(Address(hexString: "0x76d6c5f3189b2b3e"))]
+        let arguments: [Cadence.Argument] = [.address(Address(hexString: "0x76d6c5f3189b2b3e"))]
         let value = "{\"type\":\"UFix64\",\"value\":\"999.71164129\"}\n"
         let response = Flow_Access_ExecuteScriptResponse.with {
             $0.value = value.data(using: .utf8)!
@@ -873,14 +873,14 @@ final class ClientTests: XCTestCase {
 
         // Assert
         XCTAssertFalse(provider.hasExecuteScriptAtBlockIDResponsesRemaining)
-        let expected = Cadence.Value.ufix64(Decimal(string: "999.71164129")!)
+        let expected = Cadence.Argument.ufix64(Decimal(string: "999.71164129")!)
         XCTAssertEqual(result, expected)
     }
 
     func testExecuteScriptAtBlockHeight() async throws {
         // Arrange
         let height: UInt64 = 5566
-        let arguments: [Cadence.Value] = [.address(Address(hexString: "0x76d6c5f3189b2b3e"))]
+        let arguments: [Cadence.Argument] = [.address(Address(hexString: "0x76d6c5f3189b2b3e"))]
         let value = "{\"type\":\"UFix64\",\"value\":\"999.71164129\"}\n"
         let response = Flow_Access_ExecuteScriptResponse.with {
             $0.value = value.data(using: .utf8)!
@@ -895,7 +895,7 @@ final class ClientTests: XCTestCase {
 
         // Assert
         XCTAssertFalse(provider.hasExecuteScriptAtBlockHeightResponsesRemaining)
-        let expected = Cadence.Value.ufix64(Decimal(string: "999.71164129")!)
+        let expected = Cadence.Argument.ufix64(Decimal(string: "999.71164129")!)
         XCTAssertEqual(result, expected)
     }
 

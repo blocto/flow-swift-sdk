@@ -22,7 +22,7 @@ final class TransactionTests: XCTestCase {
     func testAddSingleArugment() throws {
         // Arrange
         var transaction = Transaction.makeEmpty()
-        let argument = Cadence.Value.string("foo")
+        let argument = Cadence.Argument(.string("foo"))
         try transaction.addArgument(value: argument)
 
         // Act
@@ -34,8 +34,8 @@ final class TransactionTests: XCTestCase {
 
     func testAddMultipleArguments() throws {
         // Arrange
-        let argument1 = Cadence.Value.string("foo")
-        let argument2 = Cadence.Value.int(42)
+        let argument1 = Cadence.Argument.string("foo")
+        let argument2 = Cadence.Argument.int(42)
         var transaction = Transaction.makeEmpty()
 
         // Act
@@ -51,7 +51,7 @@ final class TransactionTests: XCTestCase {
 
     func testAddRawArgument() throws {
         // Arrange
-        let argument = Cadence.Value.string("foo")
+        let argument = Cadence.Argument.string("foo")
         let encodedArgument = try JSONEncoder().encode(argument)
         var transaction = Transaction.makeEmpty()
 
@@ -65,8 +65,8 @@ final class TransactionTests: XCTestCase {
 
     func testAddMultipleRawArugments() throws {
         // Arrange
-        let argument1 = Cadence.Value.string("foo")
-        let argument2 = Cadence.Value.int(42)
+        let argument1 = Cadence.Argument.string("foo")
+        let argument2 = Cadence.Argument.int(42)
         let encodedArgument1 = try JSONEncoder().encode(argument1)
         let encodedArgument2 = try JSONEncoder().encode(argument2)
         var transaction = Transaction.makeEmpty()
@@ -512,7 +512,7 @@ final class TransactionTests: XCTestCase {
     func testRLPMessagesSingleArgument() throws {
         // Arrange
         var transaction = Transaction.makeBase()
-        transaction.addRawArgument(try JSONEncoder().encode(Cadence.Value.string("foo")))
+        transaction.addRawArgument(try JSONEncoder().encode(Cadence.Argument.string("foo")))
 
         // Assert
         XCTAssertEqual(transaction.payloadMessage(), Data(hex: "f892b07472616e73616374696f6e207b2065786563757465207b206c6f67282248656c6c6f2c20576f726c64212229207d207de09f7b2274797065223a22537472696e67222c2276616c7565223a22666f6f227da0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b2a880000000000000001040a880000000000000001c9880000000000000001"))
@@ -522,8 +522,8 @@ final class TransactionTests: XCTestCase {
     func testRLPMessagesMultipleArguments() throws {
         // Arrange
         var transaction = Transaction.makeBase()
-        transaction.addRawArgument(try JSONEncoder().encode(Cadence.Value.string("foo")))
-        transaction.addRawArgument(try JSONEncoder().encode(Cadence.Value.int(42)))
+        transaction.addRawArgument(try JSONEncoder().encode(Cadence.Argument.string("foo")))
+        transaction.addRawArgument(try JSONEncoder().encode(Cadence.Argument.int(42)))
 
         // Assert
         XCTAssertEqual(transaction.payloadMessage(), Data(hex: "f8afb07472616e73616374696f6e207b2065786563757465207b206c6f67282248656c6c6f2c20576f726c64212229207d207df83c9f7b2274797065223a22537472696e67222c2276616c7565223a22666f6f227d9b7b2274797065223a22496e74222c2276616c7565223a223432227da0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b2a880000000000000001040a880000000000000001c9880000000000000001"))

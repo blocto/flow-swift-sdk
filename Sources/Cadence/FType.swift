@@ -402,20 +402,20 @@ extension FType: Codable {
         case .block:
             self = .block
         case .optional:
-            let type = try container.decodeCType(userInfo: decoder.userInfo, forKey: .type)
+            let type = try container.decodeFType(userInfo: decoder.userInfo, forKey: .type)
             self = .optional(type)
         case .variableSizedArray:
-            let element = try container.decodeCType(userInfo: decoder.userInfo, forKey: .type)
+            let element = try container.decodeFType(userInfo: decoder.userInfo, forKey: .type)
             self = .variableSizedArray(elementType: element)
         case .constantSizedArray:
             let container = try decoder.container(keyedBy: ConstantSizedArrayCodingKeys.self)
-            let element = try container.decodeCType(userInfo: decoder.userInfo, forKey: .type)
+            let element = try container.decodeFType(userInfo: decoder.userInfo, forKey: .type)
             let size = try container.decode(Int.self, forKey: .size)
             self = .constantSizedArray(elementType: element, size: size)
         case .dictionary:
             let container = try decoder.container(keyedBy: DictionaryCodingKeys.self)
-            let key = try container.decodeCType(userInfo: decoder.userInfo, forKey: .key)
-            let element = try container.decodeCType(userInfo: decoder.userInfo, forKey: .value)
+            let key = try container.decodeFType(userInfo: decoder.userInfo, forKey: .key)
+            let element = try container.decodeFType(userInfo: decoder.userInfo, forKey: .value)
             self = .dictionary(keyType: key, elementType: element)
         case .struct:
             let compositeType = try CompositeType(from: decoder)
@@ -465,7 +465,7 @@ extension FType: Codable {
             decoder.addTypeToDecodingResultsIfPossible(type: self, typeId: restrictionType.typeId)
             try restrictionType.decodePossibleRepeatedProperties(from: decoder)
         case .capability:
-            let type = try container.decodeCType(userInfo: decoder.userInfo, forKey: .type)
+            let type = try container.decodeFType(userInfo: decoder.userInfo, forKey: .type)
             self = .capability(borrowType: type)
         case .enum:
             let enumType = try EnumType(from: decoder)
