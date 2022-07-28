@@ -1,0 +1,16 @@
+version: 2.1
+
+jobs:
+  build-and-test:
+    macos:
+      xcode: 13.4.1
+    steps:
+      - checkout
+      - run:
+          name: Run tests
+          command: swift test -v
+
+workflows:
+  build_and_test:
+    jobs:
+      - build-and-test
