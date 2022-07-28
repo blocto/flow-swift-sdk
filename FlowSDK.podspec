@@ -17,24 +17,13 @@ Pod::Spec.new do |s|
 
   s.default_subspec = 'FlowSDK'
 
-  s.subspec "Crypto" do |ss|
-    ss.source_files  = "Sources/Crypto/**/*"
-    ss.dependency "CryptoSwift", "~> 1.5.1"
-    ss.dependency "secp256k1Swift", "~> 0.7.4"
-  end
-
-  s.subspec "Protobuf" do |ss|
-    ss.source_files  = "Sources/Protobuf/**/*"
-    ss.dependency "gRPC-Swiftp", "~> 1.8.2"
-  end
-
   s.subspec "FlowSDK" do |ss|
     ss.source_files  = "Sources/FlowSDK/**/*"
     ss.dependency "BigInt", "~> 5.2.0"
     ss.dependency "CryptoSwift", "~> 1.5.1"
     ss.dependency "Cadence", "~> 0.2.0"
-    ss.dependency "FlowSDK/Protobuf"
-    ss.dependency "FlowSDK/Crypto"
+    ss.dependency "gRPC-Swiftp", "~> 1.8.2"
+    ss.dependency "secp256k1Swift", "~> 0.7.4"
   end
 
 end

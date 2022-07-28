@@ -16,17 +16,12 @@ PODS:
   - CryptoSwift (1.5.1)
   - FlowSDK (0.2.0):
     - FlowSDK/FlowSDK (= 0.2.0)
-  - FlowSDK/Crypto (0.2.0):
-    - CryptoSwift (~> 1.5.1)
-    - secp256k1Swift (~> 0.7.4)
   - FlowSDK/FlowSDK (0.2.0):
     - BigInt (~> 5.2.0)
     - Cadence (~> 0.2.0)
     - CryptoSwift (~> 1.5.1)
-    - FlowSDK/Crypto
-    - FlowSDK/Protobuf
-  - FlowSDK/Protobuf (0.2.0):
     - gRPC-Swiftp (~> 1.8.2)
+    - secp256k1Swift (~> 0.7.4)
   - gRPC-Swiftp (1.8.2):
     - CGRPCZlibp (= 1.8.2)
     - Logging (< 2.0.0, >= 1.4.0)
@@ -227,7 +222,7 @@ SPEC CHECKSUMS:
   CNIOLinux: 62e3505f50de558c393dc2f273dde71dcce518da
   CNIOWindows: 3047f2d8165848a3936a0a755fee27c6b5ee479b
   CryptoSwift: c4f2debceb38bf44c80659afe009f71e23e4a082
-  FlowSDK: 8d46efd70bb64b1223883aae657adc01cd0f3332
+  FlowSDK: c36bf3b2246a1d3e8a7c2c80a61ba374a9b0e9a4
   gRPC-Swiftp: 1f5a05ce5b544bff3dce93223e72829daac26113
   Logging: beeb016c9c80cf77042d62e83495816847ef108b
   secp256k1Swift: ea49d2b06724444a03cf7938a2d3fc7acc4c0f08
