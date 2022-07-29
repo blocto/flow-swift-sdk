@@ -23,7 +23,7 @@ final class TransactionTests: XCTestCase {
         // Arrange
         var transaction = Transaction.makeEmpty()
         let argument = Cadence.Argument(.string("foo"))
-        try transaction.addArgument(value: argument)
+        try transaction.addArgument(argument)
 
         // Act
         let result = try transaction.getArugment(at: 0)
@@ -39,8 +39,8 @@ final class TransactionTests: XCTestCase {
         var transaction = Transaction.makeEmpty()
 
         // Act
-        try transaction.addArgument(value: argument1)
-        try transaction.addArgument(value: argument2)
+        try transaction.addArgument(argument1)
+        try transaction.addArgument(argument2)
 
         // Assert
         let result1 = try transaction.getArugment(at: 0)

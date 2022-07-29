@@ -146,11 +146,19 @@ public struct Transaction: Equatable {
     }
 
     /// Adds a Cadence argument to this transaction.
-    public mutating func addArgument(value: Cadence.Argument) throws {
+    public mutating func addArgument(_ argument: Cadence.Argument) throws {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .withoutEscapingSlashes
-        let data = try encoder.encode(value)
+        let data = try encoder.encode(argument)
         arguments.append(data)
+    }
+
+    /// Adds Cadence arguments to this transaction.
+    public mutating func addArguments(_ arguments: [Cadence.Argument]) throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .withoutEscapingSlashes
+        let argumentDatas = try arguments.map { try encoder.encode($0) }
+        self.arguments.append(contentsOf: argumentDatas)
     }
 
     /// Adds a raw JSON-CDC encoded argument to this transaction.
