@@ -445,9 +445,10 @@ extension Transaction {
     }
 
     /// Decode serializeds the full transaction data including the payload and all signatures.
-    public static func decode(_ data: Data) throws -> Transaction {
+    public init(rlpData: Data) throws {
         let decoder = RLPDecoder()
-        let items = try decoder.decodeRLPData(data)
-        return try Transaction(rlpItem: items)
+        let items = try decoder.decodeRLPData(rlpData)
+        try self.init(rlpItem: items)
     }
+
 }

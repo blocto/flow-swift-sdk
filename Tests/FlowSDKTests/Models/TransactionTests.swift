@@ -530,7 +530,7 @@ final class TransactionTests: XCTestCase {
         XCTAssertEqual(transaction.envelopeMessage(), Data(hex: "f8d6f8afb07472616e73616374696f6e207b2065786563757465207b206c6f67282248656c6c6f2c20576f726c64212229207d207df83c9f7b2274797065223a22537472696e67222c2276616c7565223a22666f6f227d9b7b2274797065223a22496e74222c2276616c7565223a223432227da0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b2a880000000000000001040a880000000000000001c9880000000000000001e4e38004a0f7225388c1d69d57e6251c9fda50cbbf9e05131e5adb81e5aa0422402f048162"))
     }
 
-    func testRLPDecodeAndEncode() throws {
+    func testRLPEncodeAndDecode() throws {
         // Arrange
         var transaction = Transaction.makeBase()
         transaction.addAuthorizer(address: Address(hexString: "02"))
@@ -542,7 +542,7 @@ final class TransactionTests: XCTestCase {
             signature: Data(hex: "710979fbfb6aa41b62e418f6f802a1ba8bea0a7228aab3450aab3577be3a0c07536a4b76afed839f16895e6b6225d1b2ec5faef4dda2bd1f94239fbe059bf064"))
 
         // Act
-        let result = try Transaction.decode(transaction.encode())
+        let result = try Transaction(rlpData: transaction.encode())
 
         // Assert
         XCTAssertEqual(result, transaction)
