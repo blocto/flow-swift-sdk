@@ -352,17 +352,17 @@ extension Transaction {
         payloadRLPList.rlpData
     }
 
-    public var payloadRLPList: RLPArray {
+    public var payloadRLPList: RLPEncoableArray {
         [
             script,
-            RLPArray(arguments),
+            RLPEncoableArray(arguments),
             referenceBlockId.data,
             gasLimit,
             proposalKey.address.data,
             UInt(proposalKey.keyIndex),
             proposalKey.sequenceNumber,
             payer.data,
-            RLPArray(authorizers.map { $0.data })
+            RLPEncoableArray(authorizers.map { $0.data })
         ]
     }
 
@@ -373,11 +373,61 @@ extension Transaction {
         envelopeRLPList.rlpData
     }
 
-    private var envelopeRLPList: RLPArray {
+    private var envelopeRLPList: RLPEncoableArray {
         [
             payloadRLPList,
-            RLPArray(payloadSignatures.map { $0.rlpList })
+            RLPEncoableArray(payloadSignatures.map { $0.rlpList })
         ]
+    }
+}
+
+// MARK: - RLPDecodable
+
+extension Transaction: RLPDecodable {
+
+    public init(rlpItem: RLPItem) throws {
+        let items = try rlpItem.getListItems()
+
+        guard items.count == 3 else {
+            throw RLPDecodingError.invalidType(rlpItem, type: Self.self)
+        }
+
+        // payload
+        let payloadRLPListItems = try items[0].getListItems()
+        guard payloadRLPListItems.count == 9 else {
+            throw RLPDecodingError.invalidType(rlpItem, type: Self.self)
+        }
+        self.script = try Data(rlpItem: payloadRLPListItems[0])
+        self.arguments = try payloadRLPListItems[1].getListItems()
+            .map { try Data(rlpItem: $0) }
+        self.referenceBlockId = Identifier(data: try Data(rlpItem: payloadRLPListItems[2]))
+        self.gasLimit = try UInt64(rlpItem: payloadRLPListItems[3])
+        self.proposalKey = ProposalKey(
+            address: Address(data: try Data(rlpItem: payloadRLPListItems[4])),
+            keyIndex: Int(try UInt(rlpItem: payloadRLPListItems[5])),
+            sequenceNumber: try UInt64(rlpItem: payloadRLPListItems[6]))
+        self.payer = Address(data: try Data(rlpItem: payloadRLPListItems[7]))
+        self.authorizers = try payloadRLPListItems[8].getListItems()
+            .map { Address(data: try Data(rlpItem: $0)) }
+
+        // payloadSignatures & envelopeSignatures
+        self.payloadSignatures = try items[1].getListItems()
+            .map { try Transaction.Signature(rlpItem: $0) }
+        self.envelopeSignatures = try items[2].getListItems()
+            .map { try Transaction.Signature(rlpItem: $0) }
+
+        for (index, payloadSignature) in payloadSignatures.enumerated() {
+            guard payloadSignature.signerIndex < signerList.count else {
+                throw RLPDecodingError.invalidType(rlpItem, type: Self.self)
+            }
+            payloadSignatures[index].address = signerList[payloadSignature.signerIndex]
+        }
+        for (index, envelopeSignature) in envelopeSignatures.enumerated() {
+            guard envelopeSignature.signerIndex < signerList.count else {
+                throw RLPDecodingError.invalidType(rlpItem, type: Self.self)
+            }
+            envelopeSignatures[index].address = signerList[envelopeSignature.signerIndex]
+        }
     }
 }
 
@@ -387,10 +437,17 @@ extension Transaction {
 
     /// Encode serializes the full transaction data including the payload and all signatures.
     public func encode() -> Data {
-        RLPArray([
+        RLPEncoableArray([
             payloadRLPList,
-            RLPArray(payloadSignatures.map { $0.rlpList }),
-            RLPArray(envelopeSignatures.map { $0.rlpList })
+            RLPEncoableArray(payloadSignatures.map { $0.rlpList }),
+            RLPEncoableArray(envelopeSignatures.map { $0.rlpList })
         ]).rlpData
+    }
+
+    /// Decode serializeds the full transaction data including the payload and all signatures.
+    public static func decode(_ data: Data) throws -> Transaction {
+        let decoder = RLPDecoder()
+        let items = try decoder.decodeRLPData(data)
+        return try Transaction(rlpItem: items)
     }
 }

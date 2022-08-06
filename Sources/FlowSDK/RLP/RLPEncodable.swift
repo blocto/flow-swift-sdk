@@ -24,11 +24,11 @@ extension RLPEncodable {
     }
 }
 
-// MARK: - RLPArray
+// MARK: - RLPEncoableArray
 
-public typealias RLPArray = [RLPEncodable]
+public typealias RLPEncoableArray = [RLPEncodable]
 
-extension RLPArray: RLPEncodable {
+extension RLPEncoableArray: RLPEncodable {
 
     public var rlpData: Data {
         get {

@@ -139,76 +139,76 @@ final class RLPEncodableTests: XCTestCase {
 
     func testList() throws {
         XCTAssertEqual(
-            RLPArray([]).rlpData.toHexString(),
+            RLPEncoableArray([]).rlpData.toHexString(),
             "c0")
         XCTAssertEqual(
-            RLPArray([0] as [UInt]).rlpData.toHexString(),
+            RLPEncoableArray([0] as [UInt]).rlpData.toHexString(),
             "c180")
         XCTAssertEqual(
-            RLPArray([BigUInt(0)]).rlpData.toHexString(),
+            RLPEncoableArray([BigUInt(0)]).rlpData.toHexString(),
             "c180")
         XCTAssertEqual(
-            RLPArray([1, 2, 3] as [UInt]).rlpData.toHexString(),
+            RLPEncoableArray([1, 2, 3] as [UInt]).rlpData.toHexString(),
             "c3010203")
         XCTAssertEqual( // [ [], [[]], [ [], [[]] ] ]
-            RLPArray([
-                RLPArray([]),
-                RLPArray([
-                    RLPArray([])
+            RLPEncoableArray([
+                RLPEncoableArray([]),
+                RLPEncoableArray([
+                    RLPEncoableArray([])
                 ]),
-                RLPArray([
-                    RLPArray([]),
-                    RLPArray([
-                        RLPArray([])
+                RLPEncoableArray([
+                    RLPEncoableArray([]),
+                    RLPEncoableArray([
+                        RLPEncoableArray([])
                     ])
                 ])
             ]).rlpData.toHexString(),
             "c7c0c1c0c3c0c1c0")
         XCTAssertEqual(
-            RLPArray(["aaa", "bbb", "ccc", "ddd", "eee", "fff", "ggg", "hhh", "iii", "jjj", "kkk", "lll", "mmm", "nnn", "ooo"]).rlpData.toHexString(),
+            RLPEncoableArray(["aaa", "bbb", "ccc", "ddd", "eee", "fff", "ggg", "hhh", "iii", "jjj", "kkk", "lll", "mmm", "nnn", "ooo"]).rlpData.toHexString(),
             "f83c836161618362626283636363836464648365656583666666836767678368686883696969836a6a6a836b6b6b836c6c6c836d6d6d836e6e6e836f6f6f")
         XCTAssertEqual(
-            RLPArray([
+            RLPEncoableArray([
                 UInt(1),
                 UInt(0xFFFFFF),
-                RLPArray([RLPArray([4, 5, 5] as [UInt])]),
+                RLPEncoableArray([RLPEncoableArray([4, 5, 5] as [UInt])]),
                 "abc"
             ]).rlpData.toHexString(),
             "ce0183ffffffc4c304050583616263")
         XCTAssertEqual(
-            RLPArray([
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"]),
-                RLPArray(["asdf", "qwer", "zxcv"])
+            RLPEncoableArray([
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"]),
+                RLPEncoableArray(["asdf", "qwer", "zxcv"])
             ]).rlpData.toHexString(),
             "f90200cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376cf84617364668471776572847a786376")
     }

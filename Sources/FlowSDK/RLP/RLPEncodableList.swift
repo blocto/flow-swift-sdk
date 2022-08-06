@@ -8,5 +8,5 @@
 import Foundation
 
 public protocol RLPEncodableList {
-    var rlpList: RLPArray { get }
+    var rlpList: RLPEncoableArray { get }
 }
