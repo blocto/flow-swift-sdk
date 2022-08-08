@@ -388,13 +388,22 @@ extension Transaction: RLPDecodable {
     public init(rlpItem: RLPItem) throws {
         let items = try rlpItem.getListItems()
 
-        guard items.count == 3 else {
+        let payloadRLPListItemCount = 9
+        let payloadRLPListItems: [RLPItem]
+        let hasSignature: Bool
+        switch items.count {
+        case 3:
+            hasSignature = true
+            payloadRLPListItems = try items[0].getListItems()
+        case payloadRLPListItemCount:
+            hasSignature = false
+            payloadRLPListItems = items
+        default:
             throw RLPDecodingError.invalidType(rlpItem, type: Self.self)
         }
 
         // payload
-        let payloadRLPListItems = try items[0].getListItems()
-        guard payloadRLPListItems.count == 9 else {
+        guard payloadRLPListItems.count == payloadRLPListItemCount else {
             throw RLPDecodingError.invalidType(rlpItem, type: Self.self)
         }
         self.script = try Data(rlpItem: payloadRLPListItems[0])
@@ -410,23 +419,28 @@ extension Transaction: RLPDecodable {
         self.authorizers = try payloadRLPListItems[8].getListItems()
             .map { Address(data: try Data(rlpItem: $0)) }
 
-        // payloadSignatures & envelopeSignatures
-        self.payloadSignatures = try items[1].getListItems()
-            .map { try Transaction.Signature(rlpItem: $0) }
-        self.envelopeSignatures = try items[2].getListItems()
-            .map { try Transaction.Signature(rlpItem: $0) }
+        if hasSignature {
+            // payloadSignatures & envelopeSignatures
+            self.payloadSignatures = try items[1].getListItems()
+                .map { try Transaction.Signature(rlpItem: $0) }
+            self.envelopeSignatures = try items[2].getListItems()
+                .map { try Transaction.Signature(rlpItem: $0) }
 
-        for (index, payloadSignature) in payloadSignatures.enumerated() {
-            guard payloadSignature.signerIndex < signerList.count else {
-                throw RLPDecodingError.invalidType(rlpItem, type: Self.self)
+            for (index, payloadSignature) in payloadSignatures.enumerated() {
+                guard payloadSignature.signerIndex < signerList.count else {
+                    throw RLPDecodingError.invalidType(rlpItem, type: Self.self)
+                }
+                payloadSignatures[index].address = signerList[payloadSignature.signerIndex]
             }
-            payloadSignatures[index].address = signerList[payloadSignature.signerIndex]
-        }
-        for (index, envelopeSignature) in envelopeSignatures.enumerated() {
-            guard envelopeSignature.signerIndex < signerList.count else {
-                throw RLPDecodingError.invalidType(rlpItem, type: Self.self)
+            for (index, envelopeSignature) in envelopeSignatures.enumerated() {
+                guard envelopeSignature.signerIndex < signerList.count else {
+                    throw RLPDecodingError.invalidType(rlpItem, type: Self.self)
+                }
+                envelopeSignatures[index].address = signerList[envelopeSignature.signerIndex]
             }
-            envelopeSignatures[index].address = signerList[envelopeSignature.signerIndex]
+        } else {
+            self.payloadSignatures = []
+            self.envelopeSignatures = []
         }
     }
 }
