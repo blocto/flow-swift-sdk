@@ -344,13 +344,12 @@ extension Transaction {
             signature: signature)
     }
 
-    public func payloadMessage() -> Data {
+    public var payloadMessage: Data {
         payloadRLPList.rlpData
     }
 
     public var encodedPayload: Data {
-        let payload = payloadMessage()
-        return DomainTag.transaction.rightPaddedData + payload
+        DomainTag.transaction.rightPaddedData + payloadMessage
     }
 
     public var payloadRLPList: RLPEncoableArray {
@@ -367,16 +366,15 @@ extension Transaction {
         ]
     }
 
-    /// Returns the signable message for the transaction envelope.
+    /// The signable message for the transaction envelope.
     ///
     /// This message is only signed by the payer account.
-    public func envelopeMessage() -> Data {
+    public var envelopeMessage: Data {
         envelopeRLPList.rlpData
     }
     
     public var encodedEnvelope: Data {
-        let envelope = envelopeMessage()
-        return DomainTag.transaction.rightPaddedData + envelope
+        DomainTag.transaction.rightPaddedData + envelopeMessage
     }
 
     private var envelopeRLPList: RLPEncoableArray {
