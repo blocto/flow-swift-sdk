@@ -1,7 +1,7 @@
 PODS:
   - _NIODataStructures (2.40.0)
   - BigInt (5.2.0)
-  - Cadence (0.3.0):
+  - Cadence (0.4.0):
     - BigInt (~> 5.2.0)
     - CryptoSwift (~> 1.5.1)
   - CGRPCZlibp (1.8.2)
@@ -14,11 +14,11 @@ PODS:
   - CNIOLinux (2.40.0)
   - CNIOWindows (2.40.0)
   - CryptoSwift (1.5.1)
-  - FlowSDK (0.3.0):
-    - FlowSDK/FlowSDK (= 0.3.0)
-  - FlowSDK/FlowSDK (0.3.0):
+  - FlowSDK (0.4.0):
+    - FlowSDK/FlowSDK (= 0.4.0)
+  - FlowSDK/FlowSDK (0.4.0):
     - BigInt (~> 5.2.0)
-    - Cadence (~> 0.3.0)
+    - Cadence (~> 0.4.0)
     - CryptoSwift (~> 1.5.1)
     - gRPC-Swiftp (~> 1.8.2)
     - secp256k1Swift (~> 0.7.4)
@@ -212,7 +212,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   _NIODataStructures: 3d45d8e70a1d17a15b1dc59d102c63dbc0525ffd
   BigInt: f668a80089607f521586bbe29513d708491ef2f7
-  Cadence: 2a6cd88c5830c617ccad292111ebcf3073b87429
+  Cadence: 9de64e79320285ea8beecfae10327f5853f3b790
   CGRPCZlibp: 2f3e1e7a6d6cb481d4d1a26d3ec09aefacf09cbb
   CNIOAtomics: 8edf08644e5e6fa0f021c239be9e8beb1cd9ef18
   CNIOBoringSSL: 2c9c96c2e95f15e83fb8d26b9738d939cc39ae33
@@ -222,7 +222,7 @@ SPEC CHECKSUMS:
   CNIOLinux: 62e3505f50de558c393dc2f273dde71dcce518da
   CNIOWindows: 3047f2d8165848a3936a0a755fee27c6b5ee479b
   CryptoSwift: c4f2debceb38bf44c80659afe009f71e23e4a082
-  FlowSDK: 93ae90e1e9a3beffa8281c36a0cb4b89d4b6375b
+  FlowSDK: 2d7df11aa11c2eb0d53add61025d6c526f88421e
   gRPC-Swiftp: 1f5a05ce5b544bff3dce93223e72829daac26113
   Logging: beeb016c9c80cf77042d62e83495816847ef108b
   secp256k1Swift: ea49d2b06724444a03cf7938a2d3fc7acc4c0f08
