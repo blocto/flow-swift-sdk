@@ -273,7 +273,7 @@ extension Transaction {
         keyIndex: Int,
         signer: Signer
     ) throws {
-        let signature = try signer.sign(message: signablePlayload)
+        let signature = try signer.sign(message: encodedPayload)
         addPayloadSignature(
             address: address,
             keyIndex: keyIndex,
@@ -291,7 +291,7 @@ extension Transaction {
         keyIndex: Int,
         signer: Signer
     ) throws {
-        let signature = try signer.sign(message: signableEnvelope)
+        let signature = try signer.sign(message: encodedEnvelope)
         addEnvelopeSignature(
             address: address,
             keyIndex: keyIndex,
@@ -348,7 +348,7 @@ extension Transaction {
         payloadRLPList.rlpData
     }
 
-    public var signablePlayload: Data {
+    public var encodedPayload: Data {
         let payload = payloadMessage()
         return DomainTag.transaction.rightPaddedData + payload
     }
@@ -374,7 +374,7 @@ extension Transaction {
         envelopeRLPList.rlpData
     }
     
-    public var signableEnvelope: Data {
+    public var encodedEnvelope: Data {
         let envelope = envelopeMessage()
         return DomainTag.transaction.rightPaddedData + envelope
     }
