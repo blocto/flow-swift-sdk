@@ -273,9 +273,7 @@ extension Transaction {
         keyIndex: Int,
         signer: Signer
     ) throws {
-        var message = DomainTag.transaction.rightPaddedData
-        message.append(payloadMessage())
-        let signature = try signer.sign(message: message)
+        let signature = try signer.sign(message: signablePlayload)
         addPayloadSignature(
             address: address,
             keyIndex: keyIndex,
@@ -293,9 +291,7 @@ extension Transaction {
         keyIndex: Int,
         signer: Signer
     ) throws {
-        var message = DomainTag.transaction.rightPaddedData
-        message.append(envelopeMessage())
-        let signature = try signer.sign(message: message)
+        let signature = try signer.sign(message: signableEnvelope)
         addEnvelopeSignature(
             address: address,
             keyIndex: keyIndex,
@@ -352,6 +348,11 @@ extension Transaction {
         payloadRLPList.rlpData
     }
 
+    public var signablePlayload: Data {
+        let payload = payloadMessage()
+        return DomainTag.transaction.rightPaddedData + payload
+    }
+
     public var payloadRLPList: RLPEncoableArray {
         [
             script,
@@ -371,6 +372,11 @@ extension Transaction {
     /// This message is only signed by the payer account.
     public func envelopeMessage() -> Data {
         envelopeRLPList.rlpData
+    }
+    
+    public var signableEnvelope: Data {
+        let envelope = envelopeMessage()
+        return DomainTag.transaction.rightPaddedData + envelope
     }
 
     private var envelopeRLPList: RLPEncoableArray {
