@@ -657,4 +657,24 @@ final class ValueTests: XCTestCase {
         ).description, "Capability<Int>(address: 0x0000000102030405, path: /storage/foo)")
     }
 
+    func testToSwiftValueDecodable() throws {
+        // Arrange
+        struct TestStruct: Codable, Equatable {
+            let value: Decimal
+        }
+        let decimalValue = Decimal(string: "0.007601")!
+        let value: Cadence.Value = .optional(.struct(
+            id: "id",
+            fields: [
+                .init(name: "value", value: .ufix64(decimalValue)),
+            ])
+        )
+
+        // Act
+        let result: TestStruct = try value.toSwiftValue()
+
+        // Assert
+        XCTAssertEqual(result, TestStruct(value: decimalValue))
+    }
+
 }

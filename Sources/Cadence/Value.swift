@@ -379,6 +379,8 @@ extension Value {
                 result[$0.name] = bigInt.description
             } else if let bigUInt = value as? BigUInt {
                 result[$0.name] = bigUInt.description
+            } else if let decimal = value as? Decimal {
+                result[$0.name] = decimal
             } else if let encodable = value as? Encodable {
                 let value = try encodable.encoded(with: JSONEncoder())
                 result[$0.name] = try JSONSerialization.jsonObject(
