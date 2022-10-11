@@ -8,6 +8,12 @@
 import Foundation
 #if os(Linux)
 import Crypto
+
+extension Data {
+    init(hex: String) {
+        self.init(Array<UInt8>(hex: hex))
+    }
+}
 #else
 import CryptoSwift
 #endif

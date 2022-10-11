@@ -3,7 +3,7 @@
 import PackageDescription
 
 let platforms: [Platform] = [
-    Platform.linux
+    Platform.linux,
 ]
 let flowSDKDependencies: [Target.Dependency] = [
     "BigInt",
