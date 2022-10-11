@@ -60,7 +60,7 @@ final class ValueTests: XCTestCase {
         // Arrange
         struct TestStruct: Codable, Equatable {
             let name: String
-            let salary: Decimal
+            let salary: String
         }
         let value: Cadence.Value = .optional(.struct(
             id: "id",
@@ -74,7 +74,7 @@ final class ValueTests: XCTestCase {
         let result: TestStruct? = try value.toSwiftValue()
 
         // Assert
-        XCTAssertEqual(result, TestStruct(name: "Scott", salary: 0.01))
+        XCTAssertEqual(result, TestStruct(name: "Scott", salary: "0.01"))
         XCTAssertThrowsError(try value.toSwiftValue(decodableType: Int.self))
     }
 
@@ -445,7 +445,7 @@ final class ValueTests: XCTestCase {
     func testToSwiftValueEvent() throws {
         // Arrange
         struct TokensWithdrawn: Codable, Equatable {
-            let amount: Decimal
+            let amount: String
             let from: Address?
         }
         let amount = Decimal(string: "0.00000169")!
@@ -466,13 +466,13 @@ final class ValueTests: XCTestCase {
         let result: TokensWithdrawn = try value.toSwiftValue()
 
         // Assert
-        XCTAssertEqual(result, TokensWithdrawn(amount: amount, from: address))
+        XCTAssertEqual(result, TokensWithdrawn(amount: amount.description, from: address))
     }
 
     func testToSwiftValueEventWithNil() throws {
         // Arrange
         struct TokensWithdrawn: Codable, Equatable {
-            let amount: Decimal
+            let amount: String
             let from: Address?
         }
         let amount = Decimal(string: "0.00000169")!
@@ -492,7 +492,7 @@ final class ValueTests: XCTestCase {
         let result: TokensWithdrawn = try value.toSwiftValue()
 
         // Assert
-        XCTAssertEqual(result, TokensWithdrawn(amount: amount, from: nil))
+        XCTAssertEqual(result, TokensWithdrawn(amount: amount.description, from: nil))
     }
 
     func testToSwiftValueContract() throws {
@@ -661,6 +661,16 @@ final class ValueTests: XCTestCase {
         // Arrange
         struct TestStruct: Codable, Equatable {
             let value: Decimal
+
+            init(from decoder: Decoder) throws {
+                let container = try decoder.container(keyedBy: CodingKeys.self)
+                let value = try container.decode(String.self, forKey: .value)
+                self.value = Decimal(string: value) ?? 0
+            }
+
+            init(value: Decimal) {
+                self.value = value
+            }
         }
         let decimalValue = Decimal(string: "0.007601")!
         let value: Cadence.Value = .optional(.struct(
