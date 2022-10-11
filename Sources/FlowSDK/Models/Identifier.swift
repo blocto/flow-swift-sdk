@@ -6,7 +6,11 @@
 //
 
 import Foundation
+#if os(Linux)
+import Crypto
+#else
 import CryptoSwift
+#endif
 
 public struct Identifier: Equatable {
 

@@ -7,7 +7,11 @@
 
 import Foundation
 import CryptoKit
+#if os(Linux)
+import Crypto
+#else
 import CryptoSwift
+#endif
 import secp256k1
 
 public struct PublicKey {

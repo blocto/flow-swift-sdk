@@ -7,7 +7,11 @@
 
 import Foundation
 import Cadence
+#if os(Linux)
+import Crypto
+#else
 import CryptoSwift
+#endif
 
 /// A full transaction object containing a payload and signatures.
 public struct Transaction: Equatable {
