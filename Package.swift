@@ -19,7 +19,7 @@ let package = Package(
         .package(url: "https://github.com/grpc/grpc-swift.git", from: "1.8.2"),
         .package(url: "https://github.com/attaswift/BigInt.git", from: "5.2.0"),
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", .upToNextMajor(from: "1.5.1")),
-        .package(url: "https://github.com/portto/secp256k1.swift", from: "0.7.4")
+        .package(url: "https://github.com/GigaBitcoin/secp256k1.swift.git", from: "0.9.2")
     ],
     targets: [
         .target(
@@ -36,7 +36,7 @@ let package = Package(
                 "CryptoSwift",
                 "Cadence",
                 .product(name: "GRPC", package: "grpc-swift"),
-                .product(name: "secp256k1Swift", package: "secp256k1.swift")
+                .product(name: "secp256k1", package: "secp256k1.swift")
             ]
         ),
         .testTarget(

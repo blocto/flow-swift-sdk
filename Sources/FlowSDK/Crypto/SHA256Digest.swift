@@ -6,10 +6,10 @@
 //
 
 import Foundation
-import CryptoKit
-import secp256k1Swift
+import protocol CryptoKit.Digest
+import protocol secp256k1.Digest
 
-public struct SHA256Digest: CryptoKit.Digest, secp256k1Swift.Digest {
+public struct SHA256Digest: CryptoKit.Digest, secp256k1.Digest {
 
     let bytes: (UInt64, UInt64, UInt64, UInt64)
 
