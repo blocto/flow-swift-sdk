@@ -11,6 +11,7 @@ public enum Network: String {
     case mainnet
     case testnet
     case canarynet
+    case sandboxnet
     case emulator
 
     var endpoint: Endpoint {
@@ -21,6 +22,8 @@ public enum Network: String {
             return Endpoint(host: "access.devnet.nodes.onflow.org", port: 9000)
         case .canarynet:
             return Endpoint(host: "access.canary.nodes.onflow.org", port: 9000)
+        case .sandboxnet:
+            return Endpoint(host: "access.sandboxnet.nodes.onflow.org", port: 9000)
         case .emulator:
             return Endpoint(host: "127.0.0.1", port: 3569)
         }
