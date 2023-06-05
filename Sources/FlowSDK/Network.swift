@@ -7,12 +7,13 @@
 
 import Foundation
 
-public enum Network: String {
+public enum Network {
     case mainnet
     case testnet
     case canarynet
     case sandboxnet
     case emulator
+    case custom(host: String, port: Int)
 
     var endpoint: Endpoint {
         switch self {
@@ -26,6 +27,8 @@ public enum Network: String {
             return Endpoint(host: "access.sandboxnet.nodes.onflow.org", port: 9000)
         case .emulator:
             return Endpoint(host: "127.0.0.1", port: 3569)
+        case let .custom(host, port):
+            return Endpoint(host: host, port: port)
         }
     }
 }
