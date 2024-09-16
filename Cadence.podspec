@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'Cadence'
-  s.version          = '0.6.0'
+  s.version          = '0.7.0'
   s.summary          = 'JSON-Cadence Data Interchange Format Wrapper'
 
   s.homepage         = 'https://github.com/portto/flow-swift-sdk'

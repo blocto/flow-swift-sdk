@@ -18,7 +18,7 @@ platform :ios, '13.0'
 use_frameworks!
 
 target 'ExampleApp' do
-  pod 'FlowSDK', '~> 0.6.0'
+  pod 'FlowSDK', '~> 0.7.0'
 end
 ```
 
@@ -26,7 +26,7 @@ end
 
 - File > Swift Packages > Add Package Dependency
 - Add `https://github.com/portto/flow-swift-sdk.git`
-- Select "Up to Next Major" with "0.6.0"
+- Select "Up to Next Major" with "0.7.0"
 
 # Usage
 

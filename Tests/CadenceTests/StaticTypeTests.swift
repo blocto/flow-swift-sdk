@@ -1376,7 +1376,10 @@ final class StaticTypeTests: XCTestCase {
         let jsonData = """
         {
           "kind": "Reference",
-          "authorized": true,
+          "authorization": {
+            "kind": "Unauthorized",
+            "entitlements": null
+          },
           "type": {
             "kind": "String"
           }
@@ -1387,7 +1390,7 @@ final class StaticTypeTests: XCTestCase {
         let value = try decoder.decode(FType.self, from: jsonData)
 
         // Then
-        XCTAssertEqual(value, .reference(.init(authorized: true, type: .string)))
+        XCTAssertEqual(value, .reference(.init(authorization: .init(kind: .unauthorized), type: .string)))
         XCTAssertEqual(value.kind, .reference)
     }
 
@@ -1450,7 +1453,10 @@ final class StaticTypeTests: XCTestCase {
           "kind": "Capability",
           "type": {
             "kind": "Reference",
-            "authorized": true,
+            "authorization": {
+              "kind": "EntitlementMapAuthorization",
+              "entitlements": null
+            },
             "type": {
               "kind": "String"
             }
@@ -1463,7 +1469,7 @@ final class StaticTypeTests: XCTestCase {
 
         // Then
         XCTAssertEqual(value, .capability(
-            borrowType: .reference(.init(authorized: true, type: .string))
+            borrowType: .reference(.init(authorization: .init(kind: .entitlementMapAuthorization), type: .string))
         ))
         XCTAssertEqual(value.kind, .capability)
     }
