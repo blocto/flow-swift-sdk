@@ -256,11 +256,7 @@ public enum FType: Equatable {
         case let .function(functionType):
             return functionType.typeId
         case let .reference(referenceType):
-            var id = "&\(referenceType.type.id)"
-            if referenceType.authorized {
-                id = "auth" + id
-            }
-            return id
+            return referenceType.authorization.kind.rawValue + "&\(referenceType.type.id)"
         case let .restriction(restrictionType):
             return restrictionType.typeId
         case let .capability(borrowType):
