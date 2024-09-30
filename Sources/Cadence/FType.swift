@@ -75,6 +75,7 @@ public enum FType: Equatable {
     indirect case restriction(RestrictionType)
     indirect case capability(borrowType: FType)
     indirect case `enum`(EnumType)
+    indirect case intersection(IntersectionType)
 
     public var kind: FTypeKind {
         switch self {
@@ -212,6 +213,8 @@ public enum FType: Equatable {
             return .capability
         case .enum:
             return .enum
+        case .intersection:
+            return .intersection
         }
     }
 
@@ -263,6 +266,8 @@ public enum FType: Equatable {
             return "\(kind.rawValue)<\(borrowType.id)>"
         case let .enum(enumType):
             return enumType.typeId
+        case let .intersection(IntersectionType):
+            return IntersectionType.typeId
         }
     }
 }
@@ -468,6 +473,8 @@ extension FType: Codable {
             self = .enum(enumType)
             decoder.addTypeToDecodingResultsIfPossible(type: self, typeId: enumType.typeId)
             try enumType.decodePossibleRepeatedProperties(from: decoder)
+        case .intersection:
+            self = .intersection(try IntersectionType(from: decoder))
         }
     }
 

@@ -1394,6 +1394,26 @@ final class StaticTypeTests: XCTestCase {
         XCTAssertEqual(value.kind, .reference)
     }
 
+    func testDecodeIntersectionType() throws {
+        // Given:
+        let jsonData = """
+        {
+          "kind": "Intersection",
+          "typeID": "type-id",
+          "types": [{
+            "kind": "String"
+          }]
+        }
+        """.data(using: .utf8)!
+
+        // When:
+        let value = try decoder.decode(FType.self, from: jsonData)
+
+        // Then
+        XCTAssertEqual(value, .intersection(.init(typeId: "type-id", types: [.string])))
+        XCTAssertEqual(value.kind, .intersection)
+    }
+
     func testDecodeRestrictedType() throws {
         // Given:
         let jsonData = """
