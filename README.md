@@ -18,7 +18,7 @@ platform :ios, '13.0'
 use_frameworks!
 
 target 'ExampleApp' do
-  pod 'FlowSDK', '~> 0.7.0'
+  pod 'FlowSDK', '~> 0.7.1'
 end
 ```
 

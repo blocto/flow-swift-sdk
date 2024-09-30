@@ -1,7 +1,7 @@
 PODS:
   - _NIODataStructures (2.40.0)
   - BigInt (5.2.0)
-  - Cadence (0.7.0):
+  - Cadence (0.7.1):
     - BigInt (~> 5.2.0)
     - CryptoSwift (~> 1.5.1)
   - CGRPCZlibp (1.8.2)
@@ -14,14 +14,15 @@ PODS:
   - CNIOLinux (2.40.0)
   - CNIOWindows (2.40.0)
   - CryptoSwift (1.5.1)
-  - FlowSDK (0.7.0):
-    - FlowSDK/FlowSDK (= 0.7.0)
-  - FlowSDK/FlowSDK (0.7.0):
+  - FlowSDK (0.7.1):
+    - FlowSDK/FlowSDK (= 0.7.1)
+  - FlowSDK/FlowSDK (0.7.1):
     - BigInt (~> 5.2.0)
     - Cadence (~> 0.7.0)
     - CryptoSwift (~> 1.5.1)
-    - gRPC-Swiftp (~> 1.8.2)
+    - gRPC-Swiftp (= 1.8.2)
     - secp256k1Swift (~> 0.7.4)
+    - SwiftProtobuf (= 1.9.0)
   - gRPC-Swiftp (1.8.2):
     - CGRPCZlibp (= 1.8.2)
     - Logging (< 2.0.0, >= 1.4.0)
@@ -165,7 +166,7 @@ PODS:
     - SwiftNIOFoundationCompat (< 3, >= 2.32.0)
     - SwiftNIOPosix (< 3, >= 2.32.0)
     - SwiftNIOTLS (< 3, >= 2.32.0)
-  - SwiftProtobuf (1.19.0)
+  - SwiftProtobuf (1.9.0)
 
 DEPENDENCIES:
   - Cadence (from `../../`)
@@ -212,7 +213,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   _NIODataStructures: 3d45d8e70a1d17a15b1dc59d102c63dbc0525ffd
   BigInt: f668a80089607f521586bbe29513d708491ef2f7
-  Cadence: 9da7b2a3a168464a2781cff4cee55622e61c19fc
+  Cadence: c8a624ee9e7d517def42073a7a74b1cda9e70750
   CGRPCZlibp: 2f3e1e7a6d6cb481d4d1a26d3ec09aefacf09cbb
   CNIOAtomics: 8edf08644e5e6fa0f021c239be9e8beb1cd9ef18
   CNIOBoringSSL: 2c9c96c2e95f15e83fb8d26b9738d939cc39ae33
@@ -222,7 +223,7 @@ SPEC CHECKSUMS:
   CNIOLinux: 62e3505f50de558c393dc2f273dde71dcce518da
   CNIOWindows: 3047f2d8165848a3936a0a755fee27c6b5ee479b
   CryptoSwift: c4f2debceb38bf44c80659afe009f71e23e4a082
-  FlowSDK: cb955510a2c9ab1fff56ae5595181b28e26b7970
+  FlowSDK: 7eb22871471961602709707eeb78ad53e9f0330b
   gRPC-Swiftp: 1f5a05ce5b544bff3dce93223e72829daac26113
   Logging: beeb016c9c80cf77042d62e83495816847ef108b
   secp256k1Swift: ea49d2b06724444a03cf7938a2d3fc7acc4c0f08
@@ -240,8 +241,8 @@ SPEC CHECKSUMS:
   SwiftNIOSSL: d153c5a6fc5b2301b0519b4c4d037a9414212da6
   SwiftNIOTLS: 598af547490133e9aac52aed0c23c4a90c31dcfc
   SwiftNIOTransportServices: 0b2b407819d82eb63af558c5396e33c945759503
-  SwiftProtobuf: 6ef3f0e422ef90d6605ca20b21a94f6c1324d6b3
+  SwiftProtobuf: ecbec1be9036d15655f6b3443a1c4ea693c97932
 
 PODFILE CHECKSUM: d8a389b6a7e250e1945dddc04110d7966bee7f71
 
-COCOAPODS: 1.11.3
+COCOAPODS: 1.15.2
