@@ -75,4 +75,5 @@ public enum FTypeKind: String, Equatable, Codable {
     case restriction = "Restriction"
     case capability = "Capability"
     case `enum` = "Enum"
+    case intersection = "Intersection"
 }

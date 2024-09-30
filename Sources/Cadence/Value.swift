@@ -508,7 +508,7 @@ extension Value: CustomStringConvertible {
             return Format.capability(
                 borrowType: capability.borrowType,
                 address: capability.address,
-                path: capability.path
+                id: capability.id
             ).description
         }
     }

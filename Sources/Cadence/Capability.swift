@@ -10,16 +10,16 @@ import Foundation
 /// https://docs.onflow.org/cadence/json-cadence-spec/#capability
 public struct Capability: Codable, Equatable {
 
-    public let path: String
+    public let id: String
     public let address: Address
     public let borrowType: FType
 
     public init(
-        path: String,
+        id: String,
         address: Address,
         borrowType: FType
     ) {
-        self.path = path
+        self.id = id
         self.address = address
         self.borrowType = borrowType
     }

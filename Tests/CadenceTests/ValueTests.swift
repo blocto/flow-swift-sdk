@@ -564,7 +564,7 @@ final class ValueTests: XCTestCase {
     func testToSwiftValueCapability() throws {
         // Arrange
         let capability = Capability(
-            path: "path",
+            id: "id",
             address: Address(hexString: "0xcb2d04fc89307107"),
             borrowType: .fix64)
         let value: Cadence.Value = .capability(capability)
@@ -651,10 +651,10 @@ final class ValueTests: XCTestCase {
         ).description, "Type<Int>()")
         XCTAssertEqual(Value.capability(
             .init(
-                path: "/storage/foo",
+                id: "id",
                 address: Address(data: Data([1, 2, 3, 4, 5])),
                 borrowType: .int)
-        ).description, "Capability<Int>(address: 0x0000000102030405, path: /storage/foo)")
+        ).description, "Capability<Int>(address: 0x0000000102030405, id: id)")
     }
 
     func testToSwiftValueDecodable() throws {
