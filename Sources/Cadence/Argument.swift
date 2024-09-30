@@ -315,8 +315,8 @@ extension Argument {
         Argument(.capability(value))
     }
 
-    public static func capability(path: String, address: Address, borrowType: FType) -> Argument {
-        Argument(.capability(Capability(path: path, address: address, borrowType: borrowType)))
+    public static func capability(id: String, address: Address, borrowType: FType) -> Argument {
+        Argument(.capability(Capability(id: id, address: address, borrowType: borrowType)))
     }
 
 }

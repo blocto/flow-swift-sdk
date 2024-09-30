@@ -749,7 +749,7 @@ final class ArgumentTests: XCTestCase {
         {
           "type": "Capability",
           "value": {
-            "path": "/public/someInteger",
+            "id": "7",
             "address": "0x1",
             "borrowType": {
               "kind": "Int"
@@ -765,7 +765,7 @@ final class ArgumentTests: XCTestCase {
         XCTAssertEqual(argument.type, .capability)
         XCTAssertEqual(argument.value, .capability(
             .init(
-                path: "/public/someInteger",
+                id: "7",
                 address: Address(hexString: "0x1"),
                 borrowType: .int
             )

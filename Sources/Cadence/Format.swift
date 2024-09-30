@@ -39,7 +39,7 @@ enum Format {
     case capability(
         borrowType: FType,
         address: Address,
-        path: String)
+        id: String)
 }
 
 // MARK: - CustomStringConvertible
@@ -131,9 +131,9 @@ extension Format: CustomStringConvertible {
             } else {
                 return "Type<\(type.id)>()"
             }
-        case let .capability(borrowType, address, path):
+        case let .capability(borrowType, address, id):
             let typeArgument = borrowType.id.isEmpty ? "" : "<\(borrowType.id)>"
-            return "Capability\(typeArgument)(address: \(address.hexStringWithPrefix), path: \(path))"
+            return "Capability\(typeArgument)(address: \(address.hexStringWithPrefix), id: \(id))"
         }
     }
 
