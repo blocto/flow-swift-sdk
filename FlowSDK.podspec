@@ -18,7 +18,7 @@ Pod::Spec.new do |s|
     ss.source_files  = "Sources/FlowSDK/**/*"
     ss.dependency "BigInt", "~> 5.2.0"
     ss.dependency "CryptoSwift", "~> 1.5.1"
-    ss.dependency "Cadence", "~> 0.7.0"
+    ss.dependency "Cadence", "~> 0.7.1"
     ss.dependency "gRPC-Swiftp", "1.8.2"
     ss.dependency "SwiftProtobuf", '1.9.0'
     ss.dependency "secp256k1Swift", "~> 0.7.4"
