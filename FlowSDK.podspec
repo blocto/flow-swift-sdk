@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'FlowSDK'
-  s.version          = '0.7.0'
+  s.version          = '0.7.1'
   s.summary          = 'Flow blockchain swift SDK'
 
   s.homepage         = 'https://github.com/portto/flow-swift-sdk'
