@@ -18,7 +18,7 @@ PODS:
     - FlowSDK/FlowSDK (= 0.7.1)
   - FlowSDK/FlowSDK (0.7.1):
     - BigInt (~> 5.2.0)
-    - Cadence (~> 0.7.0)
+    - Cadence (~> 0.7.1)
     - CryptoSwift (~> 1.5.1)
     - gRPC-Swiftp (= 1.8.2)
     - secp256k1Swift (~> 0.7.4)
@@ -223,7 +223,7 @@ SPEC CHECKSUMS:
   CNIOLinux: 62e3505f50de558c393dc2f273dde71dcce518da
   CNIOWindows: 3047f2d8165848a3936a0a755fee27c6b5ee479b
   CryptoSwift: c4f2debceb38bf44c80659afe009f71e23e4a082
-  FlowSDK: 7eb22871471961602709707eeb78ad53e9f0330b
+  FlowSDK: 8487d7a00b17beb034d01c4d62fa1171666e8423
   gRPC-Swiftp: 1f5a05ce5b544bff3dce93223e72829daac26113
   Logging: beeb016c9c80cf77042d62e83495816847ef108b
   secp256k1Swift: ea49d2b06724444a03cf7938a2d3fc7acc4c0f08
@@ -243,6 +243,6 @@ SPEC CHECKSUMS:
   SwiftNIOTransportServices: 0b2b407819d82eb63af558c5396e33c945759503
   SwiftProtobuf: ecbec1be9036d15655f6b3443a1c4ea693c97932
 
-PODFILE CHECKSUM: d8a389b6a7e250e1945dddc04110d7966bee7f71
+PODFILE CHECKSUM: 261f01bf031de73c070a9562a5b917a453d5f0a0
 
 COCOAPODS: 1.15.2
